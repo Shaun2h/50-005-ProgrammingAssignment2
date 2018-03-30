@@ -4,8 +4,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -13,7 +11,6 @@ import java.security.cert.X509Certificate;
 import java.lang.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-
 import static jdk.nashorn.internal.runtime.Context.printStackTrace;
 
 public class sendFiles {
