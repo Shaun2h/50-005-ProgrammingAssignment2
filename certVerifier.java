@@ -22,8 +22,6 @@ class certVerifier{
       X509Certificate unknown_cert = (X509Certificate) cf.generateCertificate(a); //Unknown's Cert.
       CSE_cert.checkValidity(); //check validity of CSE cert. Will throw an exception.
       PublicKey CSE_key = CSE_cert.getPublicKey(); //extract CSE public key
-      CSE_cert.verify(CSE_key); //verify validty of CSE cert by checking they signed it with the
-      //public key stored inside the cert
       unknown_cert.verify(CSE_key);//verify unknown cert was signed with CSE public key.
       String[] unknown_info = unknown_cert.getSubjectDN().getName().split(", ");
       //There are only 2 people in this ecosystem. So if it does not match with ALICE or bob, it is not valid.
