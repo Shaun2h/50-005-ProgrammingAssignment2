@@ -1,2 +1,4 @@
 # 50-005 Programming Assignment 2
-needed somewhere to store it from other comp...
+Simple Server-Client codes.
+Initate classes, and pass in the arguments as required. Given how insecure the code is, i'm not documenting it.
+
