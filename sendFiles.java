@@ -16,16 +16,21 @@ import static jdk.nashorn.internal.runtime.Context.printStackTrace;
 public class sendFiles {
     private Socket receipient;
     private FileInputStream cert_FileInputStream; //to extract from a file.
-    private BufferedInputStream bufferedInputStreamForFile;//to place something into opponent
-    private sendFiles(Socket target){
+    private BufferedInputStream bufferedInputStreamForFile; //file buffer
+    private DataOutputStream PipetoClient =null; //to place something into opponent
+    public sendFiles(Socket target){
         this.receipient = target;
     }
 
 
-    public void sendPlain(String file_loc, int byte_Array_Size){
+    public void sendPlainFile(String file_loc, int byte_Array_Size){
         try{
+            if(this.PipetoClient ==null){
+                this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+            }
+            //i.e if it has not been initated before, initate.
+
             this.cert_FileInputStream = new FileInputStream(file_loc);
-            DataOutputStream PipetoClient = new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
             byte[] buffer = new byte[byte_Array_Size];
             boolean fileHasEnded = false;
@@ -60,7 +65,7 @@ public class sendFiles {
 
 
 
-    public void send_File_With_PublicKey_Encrypted(String file_loc, int byte_Array_Size, String their_cert_location){ //A method to send things with public key encryption
+    public void send_File_With_certs_key(String file_loc, int byte_Array_Size, String their_cert_location){ //A method to send things with public key encryption
         try{
             InputStream theircert = new FileInputStream(their_cert_location); //open their certificate that was sent over.
             CertificateFactory cf = CertificateFactory.getInstance("X.509"); //certificate factory
