@@ -2,8 +2,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-
-import static jdk.nashorn.internal.runtime.Context.printStackTrace;
+//this method is only for the server. never trust your clients
+//i mean look at the poor graphics designers!
 
 public class Keygen {
     public SecretKey createAES(){
@@ -16,7 +16,7 @@ public class Keygen {
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("No Such Algorithm in KeyGen");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         return null;
     }

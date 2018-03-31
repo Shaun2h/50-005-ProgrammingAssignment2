@@ -11,7 +11,6 @@ import java.security.cert.X509Certificate;
 import java.lang.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import static jdk.nashorn.internal.runtime.Context.printStackTrace;
 
 public class sendFiles {
     private Socket receipient;
@@ -63,11 +62,11 @@ public class sendFiles {
         }
         catch(FileNotFoundException ex){
             System.out.println("ERROR UPLOADING FILE!");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(IOException ex){
             System.out.println("ERROR IN CREATING CHANNELS");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
     }
 
@@ -120,35 +119,35 @@ public class sendFiles {
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("Illegal block size!");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(BadPaddingException ex){
             System.out.println("Bad padding exception occurred.");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception while encrypting file to send over...");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("NO SUCH ALGORITHM EXCEPTION");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
         catch(NoSuchPaddingException ex){
             System.out.println("NO SUCH PADDING EXCEPTION");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
         catch(CertificateException ex){
             System.out.println("ERROR IN CERTIFICATE FACTORY INSTANCE CREATION");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
         catch(FileNotFoundException ex){
             System.out.println("ERROR UPLOADING FILE!");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
         catch(IOException ex){
             System.out.println("ERROR IN CREATING CHANNELS");
-            printStackTrace(ex);
+            ex.printStackTrace();
         }
     }
     public void send_File_With_PrivateKey_Encrypted(String file_loc, int byte_Array_Size, String my_key_location){ //A method to send things with private encryption
@@ -203,35 +202,35 @@ public class sendFiles {
         }
         catch(InvalidKeySpecException ex){
             System.out.println("Invalid key spec");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("Illegal block size!");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(BadPaddingException ex){
             System.out.println("Bad padding exception occurred.");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception while encrypting file to send over...");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("NO SUCH ALGORITHM EXCEPTION");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(NoSuchPaddingException ex){
             System.out.println("NO SUCH PADDING EXCEPTION");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(FileNotFoundException ex){
             System.out.println("ERROR UPLOADING FILE!");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(IOException ex){
             System.out.println("ERROR IN CREATING CHANNELS");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
     }
 }

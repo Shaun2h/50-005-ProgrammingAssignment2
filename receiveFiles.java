@@ -11,7 +11,6 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-import static jdk.nashorn.internal.runtime.Context.printStackTrace;
 
 public class receiveFiles {
     private Socket sender;
@@ -57,7 +56,7 @@ public class receiveFiles {
             }
         }
         catch(IOException ex){
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
     }
     public void recieveEncryptedWith_public(String saveLocation, String my_key_loc) { //so we need to decode with our private key.
@@ -109,31 +108,31 @@ public class receiveFiles {
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(BadPaddingException ex){
             System.out.println("BadPadding Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(NoSuchPaddingException ex){
             System.out.println("NoSuchPadding Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(InvalidKeySpecException ex){
             System.out.println("InvalidKeySpecException");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("NoSuchAlgorithm Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(IOException ex){
             System.out.println("IOException");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
     }
     public void recieveEncryptedWith_private(String saveLocation, String their_Cert_Loc) {
@@ -177,31 +176,31 @@ public class receiveFiles {
         }
         catch(BadPaddingException ex){
             System.out.println("Bad Padding Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("No such Algorithm Exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(NoSuchPaddingException ex){
             System.out.println("No such padding exception");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(CertificateException ex){
             System.out.println("Certificate Exception occurred.");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
         catch(IOException ex){
             System.out.println("IOException Occurred.");
-            printStackTrace(ex);
+            ex.printStackTrace();;
         }
     }
 }

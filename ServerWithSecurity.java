@@ -1,7 +1,6 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import static jdk.nashorn.internal.runtime.Context.printStackTrace;
 
 public class ServerWithSecurity {
     private String my_cert; //Where is the server's certificate stored?
@@ -20,7 +19,7 @@ public class ServerWithSecurity {
 	        this.serverSocket = new ServerSocket(this.my_Port_Num);
         }
         catch(IOException ex){
-	        printStackTrace(ex);
+	        ex.printStackTrace();
         }
     }
 
@@ -30,10 +29,9 @@ public class ServerWithSecurity {
 			this.socket_To_Client= this.serverSocket.accept();
             this.file_Sender = new sendFiles(this.socket_To_Client);
             this.file_Getter = new receiveFiles(this.socket_To_Client);
-
-
-
+            //wait until you've gotten connected....
 		} catch (Exception e) {e.printStackTrace();}
+        System.out.println("got a connection! - server");
 
 	}
 
