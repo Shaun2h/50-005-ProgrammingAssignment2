@@ -17,6 +17,7 @@ public class sendFiles {
     private FileInputStream cert_FileInputStream; //to extract from a file.
     private BufferedInputStream bufferedInputStreamForFile; //file buffer
     private DataOutputStream PipetoClient =null; //to place something into opponent
+    private DataInputStream PipeFromClient =null;
     public sendFiles(Socket target){
         this.receipient = target;
     }
@@ -26,6 +27,9 @@ public class sendFiles {
         try{
             if(this.PipetoClient ==null){
                 this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+            }
+            if(this.PipeFromClient==null){
+                this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
             }
             //i.e if it has not been initated before, initate.
             this.cert_FileInputStream = new FileInputStream(file_loc);
@@ -74,6 +78,12 @@ public class sendFiles {
 
     public void send_File_With_certs_key(String file_loc, int byte_Array_Size, String their_cert_location){ //A method to send things with public key encryption
         try{
+            if(this.PipetoClient ==null){
+                this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+            }
+            if(this.PipeFromClient==null){
+                this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
+            }
             InputStream theircert = new FileInputStream(their_cert_location); //open their certificate that was sent over.
             CertificateFactory cf = CertificateFactory.getInstance("X.509"); //certificate factory
             X509Certificate receivedCert = (X509Certificate) cf.generateCertificate(theircert); //their cert
@@ -152,7 +162,12 @@ public class sendFiles {
     }
     public void send_File_With_PrivateKey_Encrypted(String file_loc, int byte_Array_Size, String my_key_location){ //A method to send things with private encryption
         try{
-
+            if(this.PipetoClient ==null){
+                this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+            }
+            if(this.PipeFromClient==null){
+                this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
+            }
 
             File key_file = new File(my_key_location);
             BufferedInputStream key_File_Input_Stream = new BufferedInputStream(new FileInputStream(key_file)); //obtain a buffered input stream of your private key.

@@ -24,7 +24,7 @@ public class ServerWithSecurity {
     }
 
 
-	public void start(String[] args) {
+	public void start() {
 		try {
 			this.socket_To_Client= this.serverSocket.accept();
             this.file_Sender = new sendFiles(this.socket_To_Client);
@@ -34,5 +34,13 @@ public class ServerWithSecurity {
         System.out.println("got a connection! - server");
 
 	}
+    public void sendplaincert(){
+        this.file_Sender.sendPlainFile(this.my_cert,1024);
+        System.out.println("tried");
+    }
+    public void receivecert(){
+        this.file_Getter.recievePlainFile("C:/Users/User/Desktop/Server/");
+    }
+
 
 }
