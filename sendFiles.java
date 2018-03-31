@@ -29,11 +29,19 @@ public class sendFiles {
                 this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
             }
             //i.e if it has not been initated before, initate.
-
             this.cert_FileInputStream = new FileInputStream(file_loc);
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
             byte[] buffer = new byte[byte_Array_Size];
             boolean fileHasEnded = false;
+
+
+            this.PipetoClient.writeInt(0);
+            this.PipetoClient.writeInt(file_loc.getBytes().length);
+            this.PipetoClient.write(file_loc.getBytes());
+            this.PipetoClient.flush();
+            //inform them of file name..
+
+
             int no_of_bytes_sent; //tell them how many bytes was sent...
             while (!fileHasEnded) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
@@ -48,7 +56,7 @@ public class sendFiles {
 
 
 
-            System.out.println("Ending off file sending...");
+            System.out.println("Ending sending of unencrypted file...");
             PipetoClient.writeInt(2);
             PipetoClient.flush();
 
@@ -76,6 +84,11 @@ public class sendFiles {
             cipher.init(Cipher.ENCRYPT_MODE,their_public_key);
 
             //Cipher is now ready for use..
+            this.PipetoClient.writeInt(0);
+            this.PipetoClient.writeInt(file_loc.getBytes().length);
+            this.PipetoClient.write(file_loc.getBytes());
+            this.PipetoClient.flush();
+            //inform them of the file name..
 
             //open their file and the required channels.
             this.cert_FileInputStream = new FileInputStream(file_loc);
@@ -100,7 +113,7 @@ public class sendFiles {
 
 
 
-            System.out.println("Ending off file sending...");
+            System.out.println("Ending sending off file encrpyted with someone's public key");
             PipetoClient.writeInt(2);
             PipetoClient.flush();
 
@@ -157,6 +170,11 @@ public class sendFiles {
             //ready to begin sending...
 
 
+            this.PipetoClient.writeInt(0);
+            this.PipetoClient.writeInt(file_loc.getBytes().length);
+            this.PipetoClient.write(file_loc.getBytes());
+            this.PipetoClient.flush();
+            //inform them of the file name..
 
 
             DataOutputStream pipe_To_Client = new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.
@@ -175,10 +193,10 @@ public class sendFiles {
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
+            key_File_Input_Stream.close();
 
 
-
-            System.out.println("Ending off file sending...");
+            System.out.println("Ending off sending of file with MY private key encryption...");
             pipe_To_Client.writeInt(2);
             pipe_To_Client.flush();
 

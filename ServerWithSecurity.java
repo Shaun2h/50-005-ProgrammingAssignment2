@@ -7,10 +7,9 @@ public class ServerWithSecurity {
     private String my_cert; //Where is the server's certificate stored?
     private int my_Port_Num;
     private ServerSocket serverSocket;
-    private DataInputStream fromClient;
-    private DataOutputStream toClient;
     private Socket socket_To_Client;
     private sendFiles file_Sender;
+    private receiveFiles file_Getter;
 
     //"C:/Users/User/Desktop/Server/Bob_Cert.crt" my public cert is stored here
 
@@ -29,7 +28,8 @@ public class ServerWithSecurity {
 	public void start(String[] args) {
 		try {
 			this.socket_To_Client= this.serverSocket.accept();
-            file_Sender = new sendFiles(this.socket_To_Client);
+            this.file_Sender = new sendFiles(this.socket_To_Client);
+            this.file_Getter = new receiveFiles(this.socket_To_Client);
 
 
 
