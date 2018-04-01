@@ -27,14 +27,12 @@ public class sendFiles {
 
     public void sendPlainFile(String file_loc, int byte_Array_Size){
         try{
-            if(this.PipetoClient ==null){
-                this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
-                System.out.println("Created pipe to client");
-            }
-            if(this.PipeFromClient==null){
-                this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
-                System.out.println("Created pipe from client");
-            }
+            this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+            System.out.println("Created pipe to client");
+
+            this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
+            System.out.println("Created pipe from client");
+
             //i.e if it has not been initated before, initate.
             this.cert_FileInputStream = new FileInputStream(file_loc);
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
@@ -63,7 +61,6 @@ public class sendFiles {
             }
             PipetoClient.writeInt(2);
             PipetoClient.flush();
-            this.PipetoClient.close();
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
             TimeUnit.MILLISECONDS.sleep(100);
