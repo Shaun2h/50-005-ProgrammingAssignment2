@@ -10,6 +10,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
 
 
 public class receiveFiles {
@@ -20,48 +21,67 @@ public class receiveFiles {
     public receiveFiles(Socket fromwho){
         this.sender = fromwho;
     }
-    public void recievePlainFile(String saveLocation) {
+    public String recievePlainFile(String saveLocation) {
         // If the packet is for transferring the filename
+        String returnvalue=null;
         try {
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
-            int packetType = this.dataInputStream.readInt();
-            if (packetType == 0) {
+            boolean notdone=true;
+            while(notdone) {
+                System.out.println("Detecting type...");
+                int packetType = this.dataInputStream.readInt();
+                System.out.println("Packet type:" + packetType);
+                if (packetType == 0) {
 
-                System.out.println("Receiving unencrypted file...");
-                int numBytes = this.dataInputStream.readInt();
+                    System.out.println("Receiving unencrypted file...");
+                    int numBytes = this.dataInputStream.readInt();
+                    System.out.println("Received number of bytes for file name");
+                    byte[] filename = new byte[numBytes];
+                    this.dataInputStream.read(filename);
+                    System.out.println("Received file name");
+                    Base64.getDecoder().decode(filename);
+                    returnvalue = saveLocation + new String(filename, 0, numBytes);
+                    this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
+                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
+                    // If the packet is for transferring a chunk of the file
 
-                byte[] filename = new byte[numBytes];
-                this.dataInputStream.read(filename);
-                this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
-                this.bufferoutputstream= new BufferedOutputStream(this.fileoutput);
-                // If the packet is for transferring a chunk of the file
+                } else if (packetType == 1) {
 
-            } else if (packetType == 1) {
+                    int numBytes = this.dataInputStream.readInt();
+                    byte[] block = new byte[numBytes];
+                    this.dataInputStream.read(block);
+                    Base64.getDecoder().decode(block);
+                    System.out.println(block);
+                    if (numBytes > 0) {
+                        this.bufferoutputstream.write(block, 0, numBytes);
+                        this.bufferoutputstream.flush();
+                    }
+                    System.out.println("Received a round of packets");
+                    }
+                else if (packetType == 2) {
 
-                int numBytes = this.dataInputStream.readInt();
-                byte[] block = new byte[numBytes];
-                this.dataInputStream.read(block);
+                    System.out.println("Reception of unencrypted file is complete.");
 
-                if (numBytes > 0)
-                    this.bufferoutputstream.write(block, 0, numBytes);
-
-            } else if (packetType == 2) {
-
-                System.out.println("Reception of unencrypted file is complete.");
-
-                if (this.bufferoutputstream != null) this.bufferoutputstream.close();
-                if (this.fileoutput != null) this.fileoutput.close();
+                    if (this.bufferoutputstream != null) {
+                        this.bufferoutputstream.close();
+                    }
+                    if (this.fileoutput != null) {
+                        this.fileoutput.close();
+                    }
+                    notdone=false;
+                }
             }
         }
         catch(IOException ex){
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
+        return returnvalue;
     }
-    public void recieveEncryptedWith_public(String saveLocation, String my_key_loc) { //so we need to decode with our private key.
+    public String recieveEncryptedWith_public(String saveLocation, String my_key_loc) { //so we need to decode with our private key.
         // If the packet is for transferring the filename
-
+        String returnvalue=null;
         try {
             File my_key_file = new File(my_key_loc);
             if (this.dataInputStream == null) {
@@ -75,69 +95,78 @@ public class receiveFiles {
             PrivateKey my_Private_key = kf.generatePrivate(keySpec);
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
+            boolean notdone=true;
+            while(notdone) {
+                int packetType = this.dataInputStream.readInt();
+                if (packetType == 0) {
 
-            int packetType = this.dataInputStream.readInt();
-            if (packetType == 0) {
+                    System.out.println("Receiving file that was encrypted with my public key....");
+                    int numBytes = this.dataInputStream.readInt();
+                    byte[] filename = new byte[numBytes];
+                    this.dataInputStream.read(filename);
+                    returnvalue = saveLocation + new String(filename, 0, numBytes);
+                    this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
+                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
+                    // If the packet is for transferring a chunk of the file
 
-                System.out.println("Receiving file that was encrypted with my public key....");
-                int numBytes = this.dataInputStream.readInt();
-                byte[] filename = new byte[numBytes];
-                this.dataInputStream.read(filename);
-                this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
-                this.bufferoutputstream= new BufferedOutputStream(this.fileoutput);
-                // If the packet is for transferring a chunk of the file
+                } else if (packetType == 1) {
+                    int numBytes = this.dataInputStream.readInt();
+                    byte[] block = new byte[numBytes];
+                    this.dataInputStream.read(block);
+                    cipher.doFinal(block);
+                    if (numBytes > 0) {
+                        this.bufferoutputstream.write(block, 0, numBytes);
+                    }
+                    System.out.println("Received a round of packets -public key encrypted type");
 
-            }
-            else if (packetType == 1) {
-                int numBytes = this.dataInputStream.readInt();
-                byte[] block = new byte[numBytes];
-                this.dataInputStream.read(block);
-                cipher.doFinal(block);
-                if (numBytes > 0)
-                    this.bufferoutputstream.write(block, 0, numBytes);
-                System.out.print(""); //just to avoid duplicated code warning. I mean i get that it's the same code but i don't need to know all the time. Thanks tho intellij. i guess
+                } else if (packetType == 2) {
 
-            }
-            else if (packetType == 2) {
+                    System.out.println("File received.. it was encrypted with my public key");
 
-                System.out.println("File received.. it was encrypted with my public key");
-
-                if (this.bufferoutputstream != null) this.bufferoutputstream.close();
-                if (this.fileoutput != null) this.fileoutput.close();
+                    if (this.bufferoutputstream != null) {
+                        this.bufferoutputstream.close();
+                    }
+                    if (this.fileoutput != null) {
+                        this.fileoutput.close();
+                    }
+                    notdone=false;
+                }
             }
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(BadPaddingException ex){
             System.out.println("BadPadding Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(NoSuchPaddingException ex){
             System.out.println("NoSuchPadding Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(InvalidKeySpecException ex){
             System.out.println("InvalidKeySpecException");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("NoSuchAlgorithm Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(IOException ex){
             System.out.println("IOException");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
+        return returnvalue;
     }
-    public void recieveEncryptedWith_private(String saveLocation, String their_Cert_Loc) {
+    public String recieveEncryptedWith_private(String saveLocation, String their_Cert_Loc) {
         //So we need to decode with their public key ie their cert.
         // If the packet is for transferring the filename
+        String returnvalue=null;
         try {
             InputStream theirCert = new FileInputStream(new File(their_Cert_Loc));
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -148,59 +177,71 @@ public class receiveFiles {
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
+            boolean notdone=true;
+            while(notdone) {
+                int packetType = this.dataInputStream.readInt();
+                if (packetType == 0) {
 
-            int packetType = this.dataInputStream.readInt();
-            if (packetType == 0) {
+                    System.out.println("Receiving file that was encrypted with someone else's private key.");
+                    int numofBytes = this.dataInputStream.readInt();
+                    byte[] filename_Buffer = new byte[numofBytes];
+                    this.dataInputStream.read(filename_Buffer);
+                    returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
+                    this.fileoutput = new FileOutputStream(saveLocation + new String(filename_Buffer, 0, numofBytes));
+                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
+                    // If the packet is for transferring a chunk of the file
 
-                System.out.println("Receiving file that was encrypted with someone else's private key.");
-                int numofBytes = this.dataInputStream.readInt();
-                byte[] filename_Buffer = new byte[numofBytes];
-                this.dataInputStream.read(filename_Buffer);
-                this.fileoutput = new FileOutputStream(saveLocation + new String(filename_Buffer, 0, numofBytes));
-                this.bufferoutputstream= new BufferedOutputStream(this.fileoutput);
-                // If the packet is for transferring a chunk of the file
+                } else if (packetType == 1) {
+                    int numBytes = this.dataInputStream.readInt();
+                    byte[] block = new byte[numBytes];
+                    this.dataInputStream.read(block);
+                    cipher.doFinal(block);
+                    if (numBytes > 0) {
+                        this.bufferoutputstream.write(block, 0, numBytes);
+                    }
+                    System.out.println("Received a round of packets - private key encrypted type");
 
-            } else if (packetType == 1) {
-                int numBytes = this.dataInputStream.readInt();
-                byte[] block = new byte[numBytes];
-                this.dataInputStream.read(block);
-                cipher.doFinal(block);
-                if (numBytes > 0)
-                    this.bufferoutputstream.write(block, 0, numBytes);
-
-            } else if (packetType == 2) {
-                System.out.println("File received -it was encrypted with private");
-                if (this.bufferoutputstream != null) this.bufferoutputstream.close();
-                if (this.fileoutput != null) this.fileoutput.close();
+                } else if (packetType == 2) {
+                    System.out.println("File received -it was encrypted with private");
+                    if (this.bufferoutputstream != null) {
+                        this.bufferoutputstream.close();
+                    }
+                    if (this.fileoutput != null) {
+                        this.fileoutput.close();
+                    }
+                    notdone=false;
+                }
             }
+
         }
         catch(BadPaddingException ex){
             System.out.println("Bad Padding Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("No such Algorithm Exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(NoSuchPaddingException ex){
             System.out.println("No such padding exception");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(CertificateException ex){
             System.out.println("Certificate Exception occurred.");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(IOException ex){
             System.out.println("IOException Occurred.");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
+        return returnvalue;
     }
 }

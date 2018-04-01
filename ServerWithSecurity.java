@@ -35,12 +35,20 @@ public class ServerWithSecurity {
 
 	}
     public void sendplaincert(){
+        System.out.println("Attempting to send plain certificate...");
         this.file_Sender.sendPlainFile(this.my_cert,1024);
-        System.out.println("tried");
+        System.out.println("Completed Cert sending Attempt");
     }
-    public void receivecert(){
-        this.file_Getter.recievePlainFile("C:/Users/User/Desktop/Server/");
+    public void receivecert_andVerify(String their_identity){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
+        System.out.println("Attempting to receive certificate");
+        String their_cert_location = this.file_Getter.recievePlainFile("C:/Users/User/Desktop/Server/received/");
+        System.out.println("Completed Receiving!");
+        System.out.println("Attempting to verify Cert is from: " + their_identity);
+        certVerifier verifier = new certVerifier();
+        verifier.verify(their_cert_location,their_identity);
+
     }
+
 
 
 }

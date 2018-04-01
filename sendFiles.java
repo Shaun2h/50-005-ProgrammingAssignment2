@@ -11,6 +11,8 @@ import java.security.cert.X509Certificate;
 import java.lang.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 public class sendFiles {
     private Socket receipient;
@@ -27,9 +29,11 @@ public class sendFiles {
         try{
             if(this.PipetoClient ==null){
                 this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+                System.out.println("Created pipe to client");
             }
             if(this.PipeFromClient==null){
                 this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
+                System.out.println("Created pipe from client");
             }
             //i.e if it has not been initated before, initate.
             this.cert_FileInputStream = new FileInputStream(file_loc);
@@ -39,38 +43,52 @@ public class sendFiles {
 
 
             this.PipetoClient.writeInt(0);
-            this.PipetoClient.writeInt(file_loc.getBytes().length);
-            this.PipetoClient.write(file_loc.getBytes());
             this.PipetoClient.flush();
+            System.out.println("initiated File sending by sending int 0 over");
+            this.PipetoClient.writeInt(Base64.getEncoder().encode(file_loc.getBytes()).length);
+            this.PipetoClient.flush();
+            System.out.println("wrote file name length over.");
+            this.PipetoClient.write(Base64.getEncoder().encode(file_loc.getBytes()));
+            this.PipetoClient.flush();
+            System.out.println("wrote the file name over");
             //inform them of file name..
 
 
             int no_of_bytes_sent; //tell them how many bytes was sent...
             while (!fileHasEnded) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
-                PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
-                PipetoClient.writeInt(no_of_bytes_sent);
-                PipetoClient.write(buffer);
-                PipetoClient.flush();
+                this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
+                this.PipetoClient.flush();
+                this.PipetoClient.writeInt(byte_Array_Size);
+                this.PipetoClient.flush();
+                this.PipetoClient.writeInt(no_of_bytes_sent);
+                this.PipetoClient.flush();
+                this.PipetoClient.write(buffer);
+                this.PipetoClient.flush();
                 fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                System.out.println("sent one packet over");
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
 
 
-
+            TimeUnit.MILLISECONDS.sleep(100);
             System.out.println("Ending sending of unencrypted file...");
             PipetoClient.writeInt(2);
             PipetoClient.flush();
 
         }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted..?");
+            ex.printStackTrace();
+        }
         catch(FileNotFoundException ex){
             System.out.println("ERROR UPLOADING FILE!");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(IOException ex){
             System.out.println("ERROR IN CREATING CHANNELS");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
     }
 
@@ -101,7 +119,6 @@ public class sendFiles {
 
             //open their file and the required channels.
             this.cert_FileInputStream = new FileInputStream(file_loc);
-            DataOutputStream PipetoClient = new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
 
 
@@ -111,25 +128,34 @@ public class sendFiles {
             while (!fileHasEnded) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 cipher.doFinal(buffer);
-                PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
-                PipetoClient.writeInt(no_of_bytes_sent);
-                PipetoClient.write(buffer);
-                PipetoClient.flush();
+                this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
+                this.PipetoClient.flush();
+                this.PipetoClient.writeInt(byte_Array_Size);
+                this.PipetoClient.flush();
+                this.PipetoClient.writeInt(no_of_bytes_sent);
+                this.PipetoClient.flush();
+                this.PipetoClient.write(buffer);
+                this.PipetoClient.flush();
                 fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                System.out.println("sent one packet over-via their public key");
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
 
 
-
+            TimeUnit.MILLISECONDS.sleep(100);
             System.out.println("Ending sending off file encrpyted with someone's public key");
             PipetoClient.writeInt(2);
             PipetoClient.flush();
 
         }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted...?");
+            ex.printStackTrace();
+        }
         catch(IllegalBlockSizeException ex){
             System.out.println("Illegal block size!");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(BadPaddingException ex){
             System.out.println("Bad padding exception occurred.");
@@ -189,9 +215,6 @@ public class sendFiles {
             this.PipetoClient.write(file_loc.getBytes());
             this.PipetoClient.flush();
             //inform them of the file name..
-
-
-            DataOutputStream pipe_To_Client = new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream); //new buffered input stream for the wanted file.
             byte[] buffer = new byte[byte_Array_Size];
             boolean fileHasEnded = false;
@@ -199,53 +222,62 @@ public class sendFiles {
             while (!fileHasEnded) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 cipher_private.doFinal(buffer);
-                pipe_To_Client.writeInt(1); //signal to them that i'm sending a part of the file.
-                pipe_To_Client.writeInt(no_of_bytes_sent);
-                pipe_To_Client.write(buffer);
-                pipe_To_Client.flush();
+                this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
+                this.PipetoClient.flush();
+                this.PipetoClient.writeInt(byte_Array_Size);
+                this.PipetoClient.flush();
+                this.PipetoClient.writeInt(no_of_bytes_sent);
+                this.PipetoClient.flush();
+                this.PipetoClient.write(buffer);
+                this.PipetoClient.flush();
                 fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                System.out.println("sent one packet over-via my private key");
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
             key_File_Input_Stream.close();
 
-
+            TimeUnit.MILLISECONDS.sleep(100);
             System.out.println("Ending off sending of file with MY private key encryption...");
-            pipe_To_Client.writeInt(2);
-            pipe_To_Client.flush();
+            this.PipetoClient.writeInt(2);
+            this.PipetoClient.flush();
 
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted...?");
+            ex.printStackTrace();
         }
         catch(InvalidKeySpecException ex){
             System.out.println("Invalid key spec");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("Illegal block size!");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(BadPaddingException ex){
             System.out.println("Bad padding exception occurred.");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key Exception while encrypting file to send over...");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(NoSuchAlgorithmException ex){
             System.out.println("NO SUCH ALGORITHM EXCEPTION");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(NoSuchPaddingException ex){
             System.out.println("NO SUCH PADDING EXCEPTION");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(FileNotFoundException ex){
             System.out.println("ERROR UPLOADING FILE!");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
         catch(IOException ex){
             System.out.println("ERROR IN CREATING CHANNELS");
-            ex.printStackTrace();;
+            ex.printStackTrace();
         }
     }
 }

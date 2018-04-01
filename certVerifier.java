@@ -50,6 +50,7 @@ class certVerifier{
      }
      catch(Exception ex){
        System.out.println("FAILED!");
+       ex.printStackTrace();
        return false;
      }
 
@@ -58,8 +59,8 @@ class certVerifier{
       return true; //if it has passed all checks.
     }
     catch(Exception ex){
-      System.out.println(ex);
       System.out.println("Exception in verifying certificate.");
+      ex.printStackTrace();
       return false;
     }
   }

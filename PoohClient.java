@@ -3,6 +3,8 @@ public class PoohClient {
         ClientWithSecurity client = new ClientWithSecurity("Alice_Cert.crt",4321,"localhost");
         client.start();
         client.sendplaincert();
+        //client.receivecert_andVerify("BOB");
+
     }
 }
 
