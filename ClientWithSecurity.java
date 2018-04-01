@@ -37,11 +37,11 @@ public class ClientWithSecurity {
 	}
 	public void receivecert_andVerify(String their_identity){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
 		System.out.println("Attempting to receive certificate");
-		String their_cert_location = this.file_Getter.recievePlainFile("C:/Users/User/Desktop/Client/received/");
+		String their_cert_location = this.file_Getter.recievePlainFile("ClientReceived/");
 		System.out.println("Completed Receiving!");
 		System.out.println("Attempting to verify Cert is from:" + their_identity);
 		certVerifier verifier = new certVerifier();
-		verifier.verify(their_cert_location,their_identity);
+		System.out.println("IS INDEED FROM: " + their_identity+ " - " + verifier.verify(their_cert_location,their_identity));
 	}
 }
 

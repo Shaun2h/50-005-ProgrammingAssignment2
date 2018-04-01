@@ -39,43 +39,37 @@ public class sendFiles {
             this.cert_FileInputStream = new FileInputStream(file_loc);
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
             byte[] buffer = new byte[byte_Array_Size];
-            boolean fileHasEnded = false;
-
-
             this.PipetoClient.writeInt(0);
-            this.PipetoClient.flush();
             System.out.println("initiated File sending by sending int 0 over");
-            this.PipetoClient.writeInt(Base64.getEncoder().encode(file_loc.getBytes()).length);
-            this.PipetoClient.flush();
+            this.PipetoClient.writeInt(file_loc.getBytes().length);
             System.out.println("wrote file name length over.");
-            this.PipetoClient.write(Base64.getEncoder().encode(file_loc.getBytes()));
+            this.PipetoClient.write(file_loc.getBytes());
             this.PipetoClient.flush();
             System.out.println("wrote the file name over");
             //inform them of file name..
-
-
+            File file_being_sent = new File(file_loc);
+            this.PipetoClient.writeLong(file_being_sent.length());
             int no_of_bytes_sent; //tell them how many bytes was sent...
-            while (!fileHasEnded) {
+            int total_bytes_sent=0;
+            while (total_bytes_sent<file_being_sent.length()) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
-                this.PipetoClient.flush();
-                this.PipetoClient.writeInt(byte_Array_Size);
-                this.PipetoClient.flush();
                 this.PipetoClient.writeInt(no_of_bytes_sent);
-                this.PipetoClient.flush();
                 this.PipetoClient.write(buffer);
                 this.PipetoClient.flush();
-                fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                total_bytes_sent+=no_of_bytes_sent; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over");
+                TimeUnit.MILLISECONDS.sleep(100);
             }
-            this.bufferedInputStreamForFile.close();
-            this.cert_FileInputStream.close(); //close the input stream of the file.
-
-
-            TimeUnit.MILLISECONDS.sleep(100);
-            System.out.println("Ending sending of unencrypted file...");
             PipetoClient.writeInt(2);
             PipetoClient.flush();
+            this.PipetoClient.close();
+            this.bufferedInputStreamForFile.close();
+            this.cert_FileInputStream.close(); //close the input stream of the file.
+            TimeUnit.MILLISECONDS.sleep(100);
+            System.out.println("Ending sending of unencrypted file...");
+
+
 
         }
         catch(InterruptedException ex){
@@ -112,7 +106,9 @@ public class sendFiles {
 
             //Cipher is now ready for use..
             this.PipetoClient.writeInt(0);
+            this.PipetoClient.flush();
             this.PipetoClient.writeInt(file_loc.getBytes().length);
+            this.PipetoClient.flush();
             this.PipetoClient.write(file_loc.getBytes());
             this.PipetoClient.flush();
             //inform them of the file name..
@@ -122,31 +118,32 @@ public class sendFiles {
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
 
 
-            byte[] buffer = new byte[byte_Array_Size];
             boolean fileHasEnded = false;
             int no_of_bytes_sent; //tell them how many bytes was sent...
             while (!fileHasEnded) {
+                byte[] buffer = new byte[byte_Array_Size];
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 cipher.doFinal(buffer);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
                 this.PipetoClient.flush();
-                this.PipetoClient.writeInt(byte_Array_Size);
-                this.PipetoClient.flush();
                 this.PipetoClient.writeInt(no_of_bytes_sent);
                 this.PipetoClient.flush();
                 this.PipetoClient.write(buffer);
+                System.out.println(buffer);
                 this.PipetoClient.flush();
                 fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via their public key");
+                TimeUnit.MILLISECONDS.sleep(100);
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
 
 
             TimeUnit.MILLISECONDS.sleep(100);
-            System.out.println("Ending sending off file encrpyted with someone's public key");
             PipetoClient.writeInt(2);
             PipetoClient.flush();
+            System.out.println("Ending sending off file encrpyted with someone's public key");
+            TimeUnit.MILLISECONDS.sleep(100);
 
         }
         catch(InterruptedException ex){
@@ -211,7 +208,9 @@ public class sendFiles {
 
 
             this.PipetoClient.writeInt(0);
+            this.PipetoClient.flush();
             this.PipetoClient.writeInt(file_loc.getBytes().length);
+            this.PipetoClient.flush();
             this.PipetoClient.write(file_loc.getBytes());
             this.PipetoClient.flush();
             //inform them of the file name..
@@ -224,14 +223,14 @@ public class sendFiles {
                 cipher_private.doFinal(buffer);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
                 this.PipetoClient.flush();
-                this.PipetoClient.writeInt(byte_Array_Size);
-                this.PipetoClient.flush();
                 this.PipetoClient.writeInt(no_of_bytes_sent);
                 this.PipetoClient.flush();
                 this.PipetoClient.write(buffer);
+                System.out.println(buffer);
                 this.PipetoClient.flush();
                 fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via my private key");
+                TimeUnit.MILLISECONDS.sleep(100);
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.

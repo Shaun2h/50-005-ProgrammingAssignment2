@@ -28,9 +28,9 @@ public class receiveFiles {
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
-            boolean notdone=true;
-            while(notdone) {
-                System.out.println("Detecting type...");
+            Long Length_of_File = new Long(10);
+            Long totalBytesSent=new Long(0);
+            while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
                 System.out.println("Packet type:" + packetType);
                 if (packetType == 0) {
@@ -40,39 +40,35 @@ public class receiveFiles {
                     System.out.println("Received number of bytes for file name");
                     byte[] filename = new byte[numBytes];
                     this.dataInputStream.read(filename);
-                    System.out.println("Received file name");
-                    Base64.getDecoder().decode(filename);
                     returnvalue = saveLocation + new String(filename, 0, numBytes);
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
+                    System.out.println(returnvalue);
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
+                    Length_of_File = this.dataInputStream.readLong();
 
                 } else if (packetType == 1) {
 
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
-                    Base64.getDecoder().decode(block);
-                    System.out.println(block);
+                    totalBytesSent += numBytes;
                     if (numBytes > 0) {
                         this.bufferoutputstream.write(block, 0, numBytes);
                         this.bufferoutputstream.flush();
                     }
                     System.out.println("Received a round of packets");
                     }
-                else if (packetType == 2) {
 
-                    System.out.println("Reception of unencrypted file is complete.");
-
-                    if (this.bufferoutputstream != null) {
-                        this.bufferoutputstream.close();
-                    }
-                    if (this.fileoutput != null) {
-                        this.fileoutput.close();
-                    }
-                    notdone=false;
-                }
             }
+            System.out.println("Reception of unencrypted file is complete.");
+            if (this.bufferoutputstream != null) {
+                this.bufferoutputstream.close();
+            }
+            if (this.fileoutput != null) {
+                this.fileoutput.close();
+            }
+
         }
         catch(IOException ex){
             ex.printStackTrace();
@@ -104,6 +100,7 @@ public class receiveFiles {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] filename = new byte[numBytes];
                     this.dataInputStream.read(filename);
+                    Base64.getDecoder().decode(filename);
                     returnvalue = saveLocation + new String(filename, 0, numBytes);
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
@@ -113,6 +110,7 @@ public class receiveFiles {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
+                    Base64.getDecoder().decode(block);
                     cipher.doFinal(block);
                     if (numBytes > 0) {
                         this.bufferoutputstream.write(block, 0, numBytes);
@@ -186,6 +184,7 @@ public class receiveFiles {
                     int numofBytes = this.dataInputStream.readInt();
                     byte[] filename_Buffer = new byte[numofBytes];
                     this.dataInputStream.read(filename_Buffer);
+                    Base64.getDecoder().decode(filename_Buffer);
                     returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename_Buffer, 0, numofBytes));
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
@@ -195,6 +194,7 @@ public class receiveFiles {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
+                    Base64.getDecoder().decode(block);
                     cipher.doFinal(block);
                     if (numBytes > 0) {
                         this.bufferoutputstream.write(block, 0, numBytes);
