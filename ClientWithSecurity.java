@@ -5,6 +5,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +20,7 @@ public class ClientWithSecurity {
 	private String target;
 	private String their_cert_location;
 	private String privateKey_loc;
+	private Key Session_Key;
 
 
 	public ClientWithSecurity(String My_CERT, int myPortNum, String targetIP,String privateKey_loc){
@@ -47,6 +49,10 @@ public class ClientWithSecurity {
 		this.file_Sender.sendPlainFile(this.client_cert,1024);
 		System.out.println("Completed Cert sending Attempt");
 	}
+	public void receiveSessionKey(){
+		this.Session_Key=this.file_Getter.receive_SessionKey_With_MY_key(this.privateKey_loc);
+		System.out.println("Success in obtaining Key");
+	}
 	public void verify_Certs(String their_identity){
 		System.out.println("Attempting to verify Cert is from:" + their_identity);
 		certVerifier verifier = new certVerifier(this.socket_To_Server,this.their_cert_location);
@@ -58,14 +64,13 @@ public class ClientWithSecurity {
 		this.clean_Streams();
 		System.out.println("Receiving Message...");
 		boolean verified = verifier.verify_Cert_and_Message();
-		System.out.println("Verified sender has private key to this cert :" + verified);
+		System.out.println("Verified sender has private key to this cert : " + verified);
 		if(!verified || !ve){
 			try{this.socket_To_Server.close();}
 			catch(IOException ex){
 				System.out.println("ERROR IN VERIFICATION");
 			}
 		}
-		clean_Streams();
 		try{
 			TimeUnit.MILLISECONDS.sleep(100);
 		}
@@ -74,6 +79,7 @@ public class ClientWithSecurity {
 			ex.printStackTrace();
 		}
 		System.out.println("Mutual Verification Phase is completed.");
+		clean_Streams();
 	}
 	public void receivecert(){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
 		System.out.println("Attempting to receive certificate");
@@ -84,15 +90,10 @@ public class ClientWithSecurity {
 	}
 	public void sendWith_ServerPublicKeyEncrypted(){
 		System.out.println("Attempting to send file encrypted with their public key..");
-		this.file_Sender.send_File_With_certs_key("rr.txt",117,this.their_cert_location);
+		this.file_Sender.send_File_With_certs_key("rr.txt",this.their_cert_location);
+		this.clean_Streams();
 	}
-	public SecretKeySpec AES_Gen(){
-		SecureRandom random = new SecureRandom();
-		byte[] key = new byte[128];
-		random.nextBytes(key);
-		SecretKeySpec hold = new SecretKeySpec(key,"AES");
-		return hold;
-	}
+
 	public void clean_Streams(){
 		try{
 			DataInputStream in = new DataInputStream(this.socket_To_Server.getInputStream());

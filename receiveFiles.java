@@ -2,6 +2,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
 import java.security.*;
@@ -132,6 +133,79 @@ public class receiveFiles {
             if (this.fileoutput != null) {
                 this.fileoutput.close();
             }
+        }
+        catch(IllegalBlockSizeException ex){
+            System.out.println("IllegalBlockSize Exception");
+            ex.printStackTrace();
+        }
+        catch(BadPaddingException ex){
+            System.out.println("BadPadding Exception");
+            ex.printStackTrace();
+        }
+        catch(InvalidKeyException ex){
+            System.out.println("Invalid Key Exception");
+            ex.printStackTrace();
+        }
+        catch(NoSuchPaddingException ex){
+            System.out.println("NoSuchPadding Exception");
+            ex.printStackTrace();
+        }
+        catch(InvalidKeySpecException ex){
+            System.out.println("InvalidKeySpecException");
+            ex.printStackTrace();
+        }
+        catch(NoSuchAlgorithmException ex){
+            System.out.println("NoSuchAlgorithm Exception");
+            ex.printStackTrace();
+        }
+        catch(IOException ex){
+            System.out.println("IOException");
+            ex.printStackTrace();
+        }
+        return returnvalue;
+    }
+    public Key receive_SessionKey_With_MY_key(String my_key_loc) { //A method to send things with public key encryption
+        Key returnvalue = null;
+        try {
+            File my_key_file = new File(my_key_loc);
+            if (this.dataInputStream == null) {
+                this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
+            }
+            DataOutputStream output = new DataOutputStream(this.sender.getOutputStream());
+            Long Length_of_File = new Long(10);
+            Long totalBytesSent=new Long(0);
+            BufferedInputStream key_File_Buffered_Input_Stream = new BufferedInputStream( new FileInputStream(my_key_file));
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            byte[] private_key_bytes = new byte[(int) my_key_file.length() ]; //obtain a byte array that can hold my entire key.
+            key_File_Buffered_Input_Stream.read(private_key_bytes); //read the entire file into this array..
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes);
+            PrivateKey my_Private_key = kf.generatePrivate(keySpec);
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
+            //Cipher to decrypt is now ready.
+            this.dataInputStream.readInt(); //Receive the 0
+            System.out.println("Receiving file that was encrypted with my public key....");
+            int numBytes = this.dataInputStream.readInt();
+            System.out.println("Received total byte array size: " + numBytes);
+            byte[] block = new byte[128];
+            byte[] answers;
+            while(this.dataInputStream.available()>0){
+                this.dataInputStream.read(block);
+            }
+            output.writeInt(0);
+            this.dataInputStream.read(block);
+            System.out.println("Received byte array of length (Before Decryption) - " + block.length);
+            for( byte v:block){
+                System.out.print(v);
+            }
+            System.out.println("");
+            answers = cipher.doFinal(block);
+            //decrypt the byte array...
+            System.out.println("Received byte array of length (After Decryption) - " + answers.length);
+            System.out.println("Received a round of packets -public key encrypted type");
+            System.out.println("File received.. it was encrypted with my public key");
+            Key key = new SecretKeySpec(answers,0,answers.length,"AES"); //re-obtain key
+            return key;
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");

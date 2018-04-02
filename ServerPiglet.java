@@ -6,7 +6,8 @@ public class ServerPiglet {
         server.sendplaincert();
         server.clean_Streams();
         server.verify_Certs("ALICE");
-        server.receieve_file_with_SERVER_PrivateKey();
+        //server.receieve_file_with_SERVER_PrivateKey(); //FOR SENDING VIA RSA ENCRYPTION
+        server.shareSessionKey();
 
     }
 }

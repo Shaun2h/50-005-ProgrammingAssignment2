@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.Key;
 import java.util.concurrent.TimeUnit;
 
 public class ServerWithSecurity {
@@ -12,6 +13,7 @@ public class ServerWithSecurity {
     private receiveFiles file_Getter;
     private String their_cert_location;
     private String privateKey_loc;
+    private Key Session_Key;
     //"C:/Users/User/Desktop/Server/Bob_Cert.crt" my public cert is stored here
 
     public ServerWithSecurity(String My_CERT, int myPortNum, String privateKey){
@@ -44,9 +46,15 @@ public class ServerWithSecurity {
         if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
         System.out.println("Attempting to send file Encrypted with MY private Key");
         this.file_Getter.recieveEncryptedWith_public("Serverreceived/",this.privateKey_loc);
-
-
+        this.clean_Streams();
     }
+
+    public void shareSessionKey(){
+	    this.file_Sender.send_SessionKey_With_certs_key(this.their_cert_location);
+	    this.clean_Streams();
+        System.out.println("Success in Sharing Key..");
+    }
+
     public void sendplaincert(){
         System.out.println("Attempting to send plain certificate...");
         this.file_Sender.sendPlainFile(this.my_cert,1024);

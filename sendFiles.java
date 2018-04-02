@@ -1,7 +1,5 @@
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
 import java.security.*;
@@ -10,6 +8,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.lang.*;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
@@ -23,7 +22,6 @@ public class sendFiles {
     public sendFiles(Socket target){
         this.receipient = target;
     }
-
 
     public void sendPlainFile(String file_loc, int byte_Array_Size){
         try{
@@ -57,7 +55,7 @@ public class sendFiles {
                 this.PipetoClient.flush();
                 total_bytes_sent+=no_of_bytes_sent; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over");
-                TimeUnit.MILLISECONDS.sleep(10);
+                TimeUnit.MILLISECONDS.sleep(1);
             }
             PipetoClient.writeInt(2);
             PipetoClient.flush();
@@ -85,8 +83,9 @@ public class sendFiles {
 
 
 
-    public void send_File_With_certs_key(String file_loc, int byte_Array_Size, String their_cert_location){ //A method to send things with public key encryption
+    public void send_File_With_certs_key(String file_loc, String their_cert_location){ //A method to send things with public key encryption
         try{
+            int byte_Array_Size = 117;
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
             System.out.println("Created pipe to client");
 
@@ -137,7 +136,7 @@ public class sendFiles {
                 total_bytes_sent+=no_of_bytes_sent;
                  //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via their public key");
-                TimeUnit.MILLISECONDS.sleep(10);
+                TimeUnit.MILLISECONDS.sleep(1);
             }
             this.bufferedInputStreamForFile.close();
             theircert.close();
@@ -183,8 +182,110 @@ public class sendFiles {
             ex.printStackTrace();
         }
     }
-    public void send_File_With_PrivateKey_Encrypted(String file_loc, int byte_Array_Size, String my_key_location){ //A method to send things with private encryption
+
+
+    private Key AES_Gen(){  //A method to generate AES key...
+        try {
+            KeyGenerator keygen = KeyGenerator.getInstance("AES");
+            keygen.init(128);
+            return keygen.generateKey();
+        }
+        catch(NoSuchAlgorithmException ex){
+            System.out.println("no such algorithm when generating AES");
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public Key send_SessionKey_With_certs_key(String their_cert_location){ //A method to send things with public key encryption
         try{
+            System.out.println("Generating Session key...");
+            Key session_Key = AES_Gen();
+            this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
+            System.out.println("Created pipe to client");
+            this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
+            System.out.println("Created pipe from client");
+
+            InputStream theircert = new FileInputStream(their_cert_location); //open their certificate that was sent over.
+            CertificateFactory cf = CertificateFactory.getInstance("X.509"); //certificate factory
+            X509Certificate receivedCert = (X509Certificate) cf.generateCertificate(theircert); //their cert
+            PublicKey their_public_key = receivedCert.getPublicKey(); //their public key extracted from the cert.
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.ENCRYPT_MODE,their_public_key);
+
+            //Cipher is now ready for use..
+            this.PipetoClient.writeInt(0);
+            System.out.println("initiated File sending by sending Int 0 over...");
+            byte[] byte_Array_To_Send = cipher.doFinal(session_Key.getEncoded());
+            this.PipetoClient.writeInt(byte_Array_To_Send.length);
+            System.out.println("wrote array length over..");
+            System.out.println("Array Length is currently: " + byte_Array_To_Send.length);
+            //finished informing them of file name...
+            Long total_bytes_sent= new Long(0);
+            int no_of_bytes_sent; //tell them how many bytes was sent...
+            while (total_bytes_sent<byte_Array_To_Send.length) {
+                no_of_bytes_sent = byte_Array_To_Send.length;
+                System.out.println("Total bytes sent over - "+ no_of_bytes_sent);
+                for (byte asd: byte_Array_To_Send){
+                    System.out.print(asd);
+                }
+                System.out.println("");
+                this.PipeFromClient.readInt();
+                this.PipetoClient.write(byte_Array_To_Send);
+                System.out.println("sent aes to client");
+                total_bytes_sent+=no_of_bytes_sent;
+                //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                System.out.println("sent one packet over-via their public key");
+                TimeUnit.MILLISECONDS.sleep(10);
+            }
+            System.out.println("Ending sending off file encrpyted with someone's public key");
+            TimeUnit.MILLISECONDS.sleep(100);
+            return session_Key;
+
+
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted...?");
+            ex.printStackTrace();
+        }
+        catch(IllegalBlockSizeException ex){
+            System.out.println("Illegal block size!");
+            ex.printStackTrace();
+        }
+        catch(BadPaddingException ex){
+            System.out.println("Bad padding exception occurred.");
+            ex.printStackTrace();
+        }
+        catch(InvalidKeyException ex){
+            System.out.println("Invalid Key Exception while encrypting file to send over...");
+            ex.printStackTrace();
+        }
+        catch(NoSuchAlgorithmException ex){
+            System.out.println("NO SUCH ALGORITHM EXCEPTION");
+            ex.printStackTrace();
+        }
+        catch(NoSuchPaddingException ex){
+            System.out.println("NO SUCH PADDING EXCEPTION");
+            ex.printStackTrace();
+        }
+        catch(CertificateException ex){
+            System.out.println("ERROR IN CERTIFICATE FACTORY INSTANCE CREATION");
+            ex.printStackTrace();
+        }
+        catch(FileNotFoundException ex){
+            System.out.println("ERROR UPLOADING FILE!");
+            ex.printStackTrace();
+        }
+        catch(IOException ex){
+            System.out.println("ERROR IN CREATING CHANNELS");
+            ex.printStackTrace();
+        }
+        return null;
+    }
+    public void send_File_With_PrivateKey_Encrypted(String file_loc,String my_key_location){ //A method to send things with private encryption
+        try{
+            int byte_Array_Size = 128;
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
             System.out.println("Created pipe to client");
 
