@@ -51,7 +51,25 @@ public class ServerWithSecurity {
         System.out.println("IS INDEED FROM: " + their_identity+ " - " + ve);
         boolean verified = verifier.verify_Cert_and_Message();
         System.out.println("Verified sender has private key to this cert :" + verified);
-        //verifier.send_Encrypted_Message(this.privateKey_loc);
+
+        System.out.println("Sending Encrypted message..");
+        verifier.send_Encrypted_Message(this.privateKey_loc);
+        System.out.println("Completed sending of encrypted message.");
+        if(!verified || !ve){
+            try{this.socket_To_Client.close();}
+            catch(IOException ex){
+                System.out.println("ERROR IN VERIFICATION");
+            }
+        }
+        clean_Streams();
+        try{
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted...?");
+            ex.printStackTrace();
+        }
+        System.out.println("Mutual Verification Phase is completed.");
     }
     public void receivecert(){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
         System.out.println("Attempting to receive certificate");
@@ -64,7 +82,7 @@ public class ServerWithSecurity {
             DataInputStream in = new DataInputStream(this.socket_To_Client.getInputStream());
             DataOutputStream out = new DataOutputStream(this.socket_To_Client.getOutputStream());
             out.flush();
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(10);
             in.skipBytes(in.available());
         }
         catch(InterruptedException ex){

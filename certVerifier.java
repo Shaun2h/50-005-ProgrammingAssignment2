@@ -4,12 +4,14 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.lang.*;
 import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.security.cert.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
 import java.io.*;
+import java.util.concurrent.TimeUnit;
 
 /*
 METHOD TO VERIFY A CERT IS FROM THE RIGHT PERSON.
@@ -40,10 +42,16 @@ class certVerifier{
             CertificateFactory cf = CertificateFactory.getInstance("X.509");//for generating certificate item
             X509Certificate their_cert = (X509Certificate) cf.generateCertificate(a); //Unknown's Cert.
             PublicKey their_key = their_cert.getPublicKey(); //extract CSE public key
+            for(byte bb: message_array){
+                System.out.print(bb);
+            }
+            System.out.println("");
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,their_key);
-            cipher.doFinal(message_array);
-            String answer = new String(message_array);
+            //System.out.println(message_array.length);
+            byte[] byte_answer = cipher.doFinal(message_array);
+            String answer = new String(byte_answer);
+            //System.out.println(answer);
             if (!answer.equals("This is a message")){
                 return false;
             }
@@ -96,16 +104,29 @@ class certVerifier{
             Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher_private.init(Cipher.ENCRYPT_MODE,my_Private_key); //make a cipher with your private key...
             byte[] messageBytes = message.getBytes();
-            System.out.println("Message byte count = "+messageBytes.length);
-            cipher_private.doFinal(messageBytes);
-            System.out.println("Message byte count = "+messageBytes.length);
+            //if you have 1024 bits for your key, which we do, you can have
+            // (1024/8 -11) characters encrypted.
+            //so, to hold your stuff,
+            byte[] ans = cipher_private.doFinal(messageBytes);
+            for(byte bb: messageBytes) {
+                System.out.print(bb);
+            }
+            System.out.println("");
+            for(byte bb: ans) {
+                System.out.print(bb);
+            }
+            System.out.println("");
+            System.out.println("Message byte count = "+ans.length);
             input.readInt(); //wait for them to send a ready.
-            output.writeInt(messageBytes.length);
+            output.writeInt(ans.length);
             input.readInt();
-            output.write(messageBytes); //
+            output.write(ans); //
             output.flush();
-            input.close();
-            output.close();
+            TimeUnit.MILLISECONDS.sleep(100);
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted...?");
+            ex.printStackTrace();
         }
         catch (IOException ex){
             System.out.println("IO Exception Occured");
