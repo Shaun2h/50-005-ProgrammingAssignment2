@@ -41,7 +41,7 @@ public class ClientWithSecurity {
 		System.out.println("Completed Receiving!");
 		System.out.println("Attempting to verify Cert is from:" + their_identity);
 		certVerifier verifier = new certVerifier();
-		System.out.println("IS INDEED FROM: " + their_identity+ " - " + verifier.verify(their_cert_location,their_identity));
+		System.out.println("IS INDEED FROM: " + their_identity+ " - " + verifier.verify_is_person(their_cert_location,their_identity));
 	}
 }
 
