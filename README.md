@@ -16,5 +16,5 @@ Fix their horrible send and receive code - check<br>
 <br>note: apparently you should just send the entire expected filesize and CUT as soon as required.<br>
 don't do their stupid flag method that just screwed it all over<br>
 <br>figure out the total length of an encrypted file, send it over as the expected total bytes.<br>
-Complete verification for certificate both ways. ie. hash a preset message. you could randomise the message but that seems like extra effort with little reward.<br>
-Padding issue.<br>
+Complete verification for certificate both ways. ie. hash a preset message. you could randomise the message but that seems like extra effort with little reward. -COMPLETED<br>
+Padding issue. - COMPLETED. minor error by me. shit.<br>
