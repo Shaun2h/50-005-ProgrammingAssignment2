@@ -15,6 +15,8 @@ Create appropriate parts to make it actually run -check <br>
 Fix their horrible send and receive code - check<br>
 <br>note: apparently you should just send the entire expected filesize and CUT as soon as required.<br>
 don't do their stupid flag method that just screwed it all over<br>
-<br>figure out the total length of an encrypted file, send it over as the expected total bytes.<br>
+<br>figure out the total length of an encrypted file, send it over as the expected total bytes.- Check. Formula is based on modulo you lazy.<br>
 Complete verification for certificate both ways. ie. hash a preset message. you could randomise the message but that seems like extra effort with little reward. -COMPLETED<br>
-Padding issue. - COMPLETED. minor error by me. shit.<br>
+Padding issue. - COMPLETED. minor error by me.<br>
+Completed AES key exchange part-Check <br>
+Final part: Make sure you encode and decode AES, sending files over- in progress...<br>
