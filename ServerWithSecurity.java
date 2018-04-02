@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.TimeUnit;
 
 public class ServerWithSecurity {
     private String my_cert; //Where is the server's certificate stored?
@@ -9,12 +10,14 @@ public class ServerWithSecurity {
     private Socket socket_To_Client;
     private sendFiles file_Sender;
     private receiveFiles file_Getter;
-
+    private String their_cert_location;
+    private String privateKey_loc;
     //"C:/Users/User/Desktop/Server/Bob_Cert.crt" my public cert is stored here
 
-    public ServerWithSecurity(String My_CERT, int myPortNum){
+    public ServerWithSecurity(String My_CERT, int myPortNum, String privateKey){
 	    this.my_cert = My_CERT;
 	    this.my_Port_Num = myPortNum;
+	    this.privateKey_loc = privateKey;
 	    try{
 	        this.serverSocket = new ServerSocket(this.my_Port_Num);
         }
@@ -30,7 +33,9 @@ public class ServerWithSecurity {
             this.file_Sender = new sendFiles(this.socket_To_Client);
             this.file_Getter = new receiveFiles(this.socket_To_Client);
             //wait until you've gotten connected....
-		} catch (Exception e) {e.printStackTrace();}
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
         System.out.println("got a connection! - server");
 
 	}
@@ -39,14 +44,37 @@ public class ServerWithSecurity {
         this.file_Sender.sendPlainFile(this.my_cert,1024);
         System.out.println("Completed Cert sending Attempt");
     }
-    public void receivecert_andVerify(String their_identity){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
+    public void verify_Certs(String their_identity){
+        System.out.println("Attempting to verify Cert is from: " + their_identity);
+        certVerifier verifier = new certVerifier(this.socket_To_Client,their_cert_location);
+        boolean ve = verifier.verify_is_person(their_identity);
+        System.out.println("IS INDEED FROM: " + their_identity+ " - " + ve);
+        boolean verified = verifier.verify_Cert_and_Message();
+        System.out.println("Verified sender has private key to this cert :" + verified);
+        //verifier.send_Encrypted_Message(this.privateKey_loc);
+    }
+    public void receivecert(){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
         System.out.println("Attempting to receive certificate");
         String their_cert_location = this.file_Getter.recievePlainFile("Serverreceived/");
         System.out.println("Completed Receiving!");
-        System.out.println("Attempting to verify Cert is from: " + their_identity);
-        certVerifier verifier = new certVerifier(this.socket_To_Client);
-        System.out.println("IS INDEED FROM: " + their_identity+ " - " + verifier.verify_is_person(their_cert_location,their_identity));
-
+        this.their_cert_location=their_cert_location;
+    }
+    public void clean_Streams(){
+        try{
+            DataInputStream in = new DataInputStream(this.socket_To_Client.getInputStream());
+            DataOutputStream out = new DataOutputStream(this.socket_To_Client.getOutputStream());
+            out.flush();
+            TimeUnit.MILLISECONDS.sleep(100);
+            in.skipBytes(in.available());
+        }
+        catch(InterruptedException ex){
+            System.out.println("INTERRUPTED");
+            ex.printStackTrace();
+        }
+        catch(IOException ex){
+            System.out.println("IOEXCEPTION CLEANING STREAM");
+            ex.printStackTrace();
+        }
     }
 
 

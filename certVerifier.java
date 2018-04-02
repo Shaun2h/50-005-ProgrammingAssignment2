@@ -20,21 +20,64 @@ class certVerifier{
     private String CA_cert_loc = "CA.crt";
     private String given_cert_loc;
     private Socket given_Socket;
-    public certVerifier(Socket s){
+    public certVerifier(Socket s, String their_cert_loc){
     this.given_Socket = s;
-  }
-    public void verify_Cert_and_Message(String their_cert_loc){
+    given_cert_loc = their_cert_loc;
+    }
+    public boolean verify_Cert_and_Message(){
         try{
             DataInputStream input = new DataInputStream(this.given_Socket.getInputStream());
             DataOutputStream output = new DataOutputStream(this.given_Socket.getOutputStream());
             //am now ready to receive data.
             output.writeInt(1);
-            //signalled to them
+            //signalled to them that i am ready to receive one.
+            int byte_array_len = input.readInt(); //now obtain the total length of the message that is encrypted
+            byte[] message_array = new byte[byte_array_len];
+            System.out.println("byte array len - "+ byte_array_len);
+            output.writeInt(1);  //signalled that I am ready to receive actual message;
+            input.read(message_array); //obtain actual byte array.
+            InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
+            CertificateFactory cf = CertificateFactory.getInstance("X.509");//for generating certificate item
+            X509Certificate their_cert = (X509Certificate) cf.generateCertificate(a); //Unknown's Cert.
+            PublicKey their_key = their_cert.getPublicKey(); //extract CSE public key
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(Cipher.DECRYPT_MODE,their_key);
+            cipher.doFinal(message_array);
+            String answer = new String(message_array);
+            if (!answer.equals("This is a message")){
+                return false;
+            }
+            return true;
+        }
+        catch(NoSuchPaddingException ex){
+            System.out.println("No such Padding Exception");
+            ex.printStackTrace();
+        }
+        catch (InvalidKeyException ex){
+            System.out.println("Invalid Key Exception");
+            ex.printStackTrace();
+        }
+        catch(CertificateException ex){
+            System.out.println("Certificate Exception");
+            ex.printStackTrace();
+        }
+        catch(NoSuchAlgorithmException ex){
+            System.out.println("No such Algorithm Exception");
+            ex.printStackTrace();
+        }
+        catch(IllegalBlockSizeException ex){
+            System.out.println("IllegalBlock Size Exception");
+            ex.printStackTrace();
+        }
+        catch(BadPaddingException ex){
+            System.out.println("Bad Padding Exception");
+            ex.printStackTrace();
         }
         catch(IOException ex){
             System.out.println("IOException Occurred");
             ex.printStackTrace();
         }
+        return false;
     }
     public void send_Encrypted_Message(String my_Private_Key_loc){
         try{
@@ -53,8 +96,12 @@ class certVerifier{
             Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher_private.init(Cipher.ENCRYPT_MODE,my_Private_key); //make a cipher with your private key...
             byte[] messageBytes = message.getBytes();
+            System.out.println("Message byte count = "+messageBytes.length);
             cipher_private.doFinal(messageBytes);
+            System.out.println("Message byte count = "+messageBytes.length);
             input.readInt(); //wait for them to send a ready.
+            output.writeInt(messageBytes.length);
+            input.readInt();
             output.write(messageBytes); //
             output.flush();
             input.close();
@@ -89,8 +136,7 @@ class certVerifier{
             ex.printStackTrace();
         }
     }
-    public boolean verify_is_person(String location_of_cert, String who){
-        given_cert_loc = location_of_cert;
+    public boolean verify_is_person(String who){
         try{
             InputStream f = new FileInputStream(this.CA_cert_loc); //Certififying authority's file
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
