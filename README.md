@@ -7,14 +7,12 @@ To make it work in an IDE like intellij, please place it into the outermost fold
 For the rest, usual commandline compile please.<br>
 <br><br><br>
 #PROGRESS TRACKER
-<br>
 Create file sending code -check <br>
 Create file receiving code -check <br>
 Create appropriate parts to make it actually run -check <br>
 
 #Debug code - in progress... will be updated with new horrible things found.
-<br>
 Fix their horrible send and receive code - check<br>
 note: apparently you should just send the entire expected filesize and CUT as soon as required.<br>
 don't do their stupid flag method that just screwed it all over<br>
-
+<br>figure out the total length of an encrypted file, send it over as the expected total bytes.
