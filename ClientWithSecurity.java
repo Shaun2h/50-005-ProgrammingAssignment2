@@ -40,7 +40,7 @@ public class ClientWithSecurity {
 		String their_cert_location = this.file_Getter.recievePlainFile("ClientReceived/");
 		System.out.println("Completed Receiving!");
 		System.out.println("Attempting to verify Cert is from:" + their_identity);
-		certVerifier verifier = new certVerifier();
+		certVerifier verifier = new certVerifier(this.socket_To_Server);
 		System.out.println("IS INDEED FROM: " + their_identity+ " - " + verifier.verify_is_person(their_cert_location,their_identity));
 	}
 }
