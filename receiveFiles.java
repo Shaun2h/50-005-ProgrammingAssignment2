@@ -83,6 +83,8 @@ public class receiveFiles {
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
+            Long Length_of_File = new Long(10);
+            Long totalBytesSent=new Long(0);
             BufferedInputStream key_File_Buffered_Input_Stream = new BufferedInputStream( new FileInputStream(my_key_file));
             KeyFactory kf = KeyFactory.getInstance("RSA");
             byte[] private_key_bytes = new byte[(int) my_key_file.length() ]; //obtain a byte array that can hold my entire key.
@@ -91,8 +93,7 @@ public class receiveFiles {
             PrivateKey my_Private_key = kf.generatePrivate(keySpec);
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
-            boolean notdone=true;
-            while(notdone) {
+            while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
                 if (packetType == 0) {
 
@@ -105,6 +106,7 @@ public class receiveFiles {
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
+                    Length_of_File = this.dataInputStream.readLong();
 
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
@@ -117,18 +119,15 @@ public class receiveFiles {
                     }
                     System.out.println("Received a round of packets -public key encrypted type");
 
-                } else if (packetType == 2) {
-
-                    System.out.println("File received.. it was encrypted with my public key");
-
-                    if (this.bufferoutputstream != null) {
-                        this.bufferoutputstream.close();
-                    }
-                    if (this.fileoutput != null) {
-                        this.fileoutput.close();
-                    }
-                    notdone=false;
                 }
+            }
+            System.out.println("File received.. it was encrypted with my public key");
+
+            if (this.bufferoutputstream != null) {
+                this.bufferoutputstream.close();
+            }
+            if (this.fileoutput != null) {
+                this.fileoutput.close();
             }
         }
         catch(IllegalBlockSizeException ex){
@@ -175,8 +174,9 @@ public class receiveFiles {
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
-            boolean notdone=true;
-            while(notdone) {
+            Long Length_of_File = new Long(10);
+            Long totalBytesSent=new Long(0);
+            while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
                 if (packetType == 0) {
 
@@ -189,6 +189,7 @@ public class receiveFiles {
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename_Buffer, 0, numofBytes));
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
+                    Length_of_File = this.dataInputStream.readLong();
 
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
@@ -200,17 +201,14 @@ public class receiveFiles {
                         this.bufferoutputstream.write(block, 0, numBytes);
                     }
                     System.out.println("Received a round of packets - private key encrypted type");
-
-                } else if (packetType == 2) {
-                    System.out.println("File received -it was encrypted with private");
-                    if (this.bufferoutputstream != null) {
-                        this.bufferoutputstream.close();
-                    }
-                    if (this.fileoutput != null) {
-                        this.fileoutput.close();
-                    }
-                    notdone=false;
                 }
+            }
+            System.out.println("File received -it was encrypted with private");
+            if (this.bufferoutputstream != null) {
+                this.bufferoutputstream.close();
+            }
+            if (this.fileoutput != null) {
+                this.fileoutput.close();
             }
 
         }

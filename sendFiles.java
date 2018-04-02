@@ -114,10 +114,11 @@ public class sendFiles {
             this.cert_FileInputStream = new FileInputStream(file_loc);
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
 
-
-            boolean fileHasEnded = false;
+            File file_being_sent = new File(file_loc);
+            this.PipetoClient.writeLong(file_being_sent.length());
+            Long total_bytes_sent= new Long(0);
             int no_of_bytes_sent; //tell them how many bytes was sent...
-            while (!fileHasEnded) {
+            while (total_bytes_sent<file_being_sent.length()) {
                 byte[] buffer = new byte[byte_Array_Size];
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 cipher.doFinal(buffer);
@@ -128,19 +129,16 @@ public class sendFiles {
                 this.PipetoClient.write(buffer);
                 System.out.println(buffer);
                 this.PipetoClient.flush();
-                fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                total_bytes_sent+=no_of_bytes_sent;
+                 //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via their public key");
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(10);
             }
             this.bufferedInputStreamForFile.close();
+            theircert.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
-
-
-            TimeUnit.MILLISECONDS.sleep(100);
-            PipetoClient.writeInt(2);
-            PipetoClient.flush();
             System.out.println("Ending sending off file encrpyted with someone's public key");
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(10);
 
         }
         catch(InterruptedException ex){
@@ -213,9 +211,11 @@ public class sendFiles {
             //inform them of the file name..
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream); //new buffered input stream for the wanted file.
             byte[] buffer = new byte[byte_Array_Size];
-            boolean fileHasEnded = false;
+            File file_being_sent = new File(file_loc);
+            this.PipetoClient.writeLong(file_being_sent.length());
+            Long total_bytes_sent= new Long(0);
             int no_of_bytes_sent; //tell them how many bytes was sent...
-            while (!fileHasEnded) {
+            while (total_bytes_sent<file_being_sent.length()) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 cipher_private.doFinal(buffer);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
@@ -225,19 +225,16 @@ public class sendFiles {
                 this.PipetoClient.write(buffer);
                 System.out.println(buffer);
                 this.PipetoClient.flush();
-                fileHasEnded = no_of_bytes_sent < buffer.length; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                total_bytes_sent+=no_of_bytes_sent;//tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via my private key");
-                TimeUnit.MILLISECONDS.sleep(100);
+                TimeUnit.MILLISECONDS.sleep(10);
             }
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
             key_File_Input_Stream.close();
 
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(10);
             System.out.println("Ending off sending of file with MY private key encryption...");
-            this.PipetoClient.writeInt(2);
-            this.PipetoClient.flush();
-
         }
         catch(InterruptedException ex){
             System.out.println("Interrupted...?");
