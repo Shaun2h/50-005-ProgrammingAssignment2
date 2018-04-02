@@ -39,6 +39,14 @@ public class ServerWithSecurity {
         System.out.println("got a connection! - server");
 
 	}
+
+	public void receieve_file_with_SERVER_PrivateKey(){
+        if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
+        System.out.println("Attempting to send file Encrypted with MY private Key");
+        this.file_Getter.recieveEncryptedWith_public("Serverreceived/",this.privateKey_loc);
+
+
+    }
     public void sendplaincert(){
         System.out.println("Attempting to send plain certificate...");
         this.file_Sender.sendPlainFile(this.my_cert,1024);

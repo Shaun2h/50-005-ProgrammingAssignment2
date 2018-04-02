@@ -93,6 +93,7 @@ public class receiveFiles {
             PrivateKey my_Private_key = kf.generatePrivate(keySpec);
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
+            byte[] answers;
             while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
                 if (packetType == 0) {
@@ -101,22 +102,24 @@ public class receiveFiles {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] filename = new byte[numBytes];
                     this.dataInputStream.read(filename);
-                    Base64.getDecoder().decode(filename);
                     returnvalue = saveLocation + new String(filename, 0, numBytes);
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
                     Length_of_File = this.dataInputStream.readLong();
-
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
-                    Base64.getDecoder().decode(block);
-                    cipher.doFinal(block);
+                    System.out.println("Received byte array of length (Before Decryption) - " + block.length);
+                    answers = cipher.doFinal(block);
+                    System.out.println("Received byte array of length (After Decryption) - " + answers.length);
                     if (numBytes > 0) {
-                        this.bufferoutputstream.write(block, 0, numBytes);
+                        System.out.println(new String(answers));
+                        this.bufferoutputstream.write(answers, 0, 117); //hard coded to proper array size. it should be 117 after decryption
                     }
+                    totalBytesSent+=128;
+
                     System.out.println("Received a round of packets -public key encrypted type");
 
                 }
@@ -175,6 +178,7 @@ public class receiveFiles {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
             Long Length_of_File = new Long(10);
+            byte[] answer;
             Long totalBytesSent=new Long(0);
             while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
@@ -184,7 +188,6 @@ public class receiveFiles {
                     int numofBytes = this.dataInputStream.readInt();
                     byte[] filename_Buffer = new byte[numofBytes];
                     this.dataInputStream.read(filename_Buffer);
-                    Base64.getDecoder().decode(filename_Buffer);
                     returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename_Buffer, 0, numofBytes));
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
@@ -195,10 +198,9 @@ public class receiveFiles {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
-                    Base64.getDecoder().decode(block);
-                    cipher.doFinal(block);
+                    answer = cipher.doFinal(block);
                     if (numBytes > 0) {
-                        this.bufferoutputstream.write(block, 0, numBytes);
+                        this.bufferoutputstream.write(answer, 0, numBytes);
                     }
                     System.out.println("Received a round of packets - private key encrypted type");
                 }

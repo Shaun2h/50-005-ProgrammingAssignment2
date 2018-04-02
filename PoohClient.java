@@ -6,7 +6,7 @@ public class PoohClient {
         client.receivecert();
         client.clean_Streams();
         client.verify_Certs("BOB");
-
+        client.sendWith_ServerPublicKeyEncrypted();
     }
 }
 

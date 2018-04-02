@@ -1,7 +1,12 @@
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 public class ClientWithSecurity {
@@ -14,6 +19,7 @@ public class ClientWithSecurity {
 	private String target;
 	private String their_cert_location;
 	private String privateKey_loc;
+
 
 	public ClientWithSecurity(String My_CERT, int myPortNum, String targetIP,String privateKey_loc){
 		this.client_cert = My_CERT;
@@ -75,6 +81,17 @@ public class ClientWithSecurity {
 		System.out.println("Completed Receiving!");
 		this.their_cert_location = their_cert_location;
 
+	}
+	public void sendWith_ServerPublicKeyEncrypted(){
+		System.out.println("Attempting to send file encrypted with their public key..");
+		this.file_Sender.send_File_With_certs_key("rr.txt",117,this.their_cert_location);
+	}
+	public SecretKeySpec AES_Gen(){
+		SecureRandom random = new SecureRandom();
+		byte[] key = new byte[128];
+		random.nextBytes(key);
+		SecretKeySpec hold = new SecretKeySpec(key,"AES");
+		return hold;
 	}
 	public void clean_Streams(){
 		try{
