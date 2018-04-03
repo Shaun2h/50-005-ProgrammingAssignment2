@@ -2,6 +2,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
@@ -12,6 +13,7 @@ import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.concurrent.TimeUnit;
 
 
 public class receiveFiles {
@@ -237,48 +239,55 @@ public class receiveFiles {
         }
         return returnvalue;
     }
-    public String recieveEncryptedWith_private(String saveLocation, String their_Cert_Loc) {
+    public String recieveEncryptedWith_AES(String saveLocation, Key Session_key) {
         //So we need to decode with their public key ie their cert.
         // If the packet is for transferring the filename
         String returnvalue=null;
+        byte[] block=null;
         try {
-            InputStream theirCert = new FileInputStream(new File(their_Cert_Loc));
-            CertificateFactory cf = CertificateFactory.getInstance("X.509");
-            X509Certificate their_Certificate = (X509Certificate) cf.generateCertificate(theirCert); //made their cert
-            PublicKey their_Public_Key = their_Certificate.getPublicKey();
-            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            cipher.init(Cipher.DECRYPT_MODE,their_Public_Key);
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            IvParameterSpec iv = null;
+            cipher.init(Cipher.DECRYPT_MODE,Session_key,iv);
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
             Long Length_of_File = new Long(10);
             byte[] answer;
+
+            BufferedOutputStream bufferedoutputstream=null;
             Long totalBytesSent=new Long(0);
             while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
                 if (packetType == 0) {
 
-                    System.out.println("Receiving file that was encrypted with someone else's private key.");
+                    System.out.println("Receiving file that was encrypted with AES key.");
                     int numofBytes = this.dataInputStream.readInt();
                     byte[] filename_Buffer = new byte[numofBytes];
                     this.dataInputStream.read(filename_Buffer);
                     returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
-                    this.fileoutput = new FileOutputStream(saveLocation + new String(filename_Buffer, 0, numofBytes));
-                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
+                    this.fileoutput = new FileOutputStream(returnvalue);
+                    System.out.println(returnvalue);
+                    bufferedoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
                     Length_of_File = this.dataInputStream.readLong();
 
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
-                    byte[] block = new byte[numBytes];
+                    block = new byte[numBytes];
                     this.dataInputStream.read(block);
+                    //block = Base64.getDecoder().decode(block);
                     answer = cipher.doFinal(block);
-                    if (numBytes > 0) {
-                        this.bufferoutputstream.write(answer, 0, numBytes);
+                    if (answer.length > 0) {
+                        bufferedoutputstream.write(answer, 0, answer.length);
+                        //this.fileoutput.write(answer, 0, numBytes);
                     }
-                    System.out.println("Received a round of packets - private key encrypted type");
+                    System.out.println("Received a round of packets - session key encrypted type");
+                }
+                if(packetType ==2){
+                    break;
                 }
             }
+            TimeUnit.MILLISECONDS.sleep(100);
             System.out.println("File received -it was encrypted with private");
             if (this.bufferoutputstream != null) {
                 this.bufferoutputstream.close();
@@ -288,12 +297,22 @@ public class receiveFiles {
             }
 
         }
+        catch(InvalidAlgorithmParameterException ex){
+            System.out.println("Invalid Algorithm Parameter Exception");
+            ex.printStackTrace();
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted exception in receive AES encrypted file");
+            ex.printStackTrace();
+        }
         catch(BadPaddingException ex){
             System.out.println("Bad Padding Exception");
+            System.out.println(block.length);
             ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
+            System.out.println(block.length);
             ex.printStackTrace();
         }
         catch(InvalidKeyException ex){
@@ -306,10 +325,6 @@ public class receiveFiles {
         }
         catch(NoSuchPaddingException ex){
             System.out.println("No such padding exception");
-            ex.printStackTrace();
-        }
-        catch(CertificateException ex){
-            System.out.println("Certificate Exception occurred.");
             ex.printStackTrace();
         }
         catch(IOException ex){

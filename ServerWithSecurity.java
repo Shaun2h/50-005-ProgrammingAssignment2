@@ -41,7 +41,12 @@ public class ServerWithSecurity {
         System.out.println("got a connection! - server");
 
 	}
-
+    public void receieve_file_with_AES(){
+        if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
+        System.out.println("Attempting to receive file Encrypted with AES Key");
+        this.file_Getter.recieveEncryptedWith_AES("Serverreceived/",this.Session_Key);
+        System.out.println("Completed reception of file.");
+    }
 	public void receieve_file_with_SERVER_PrivateKey(){
         if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
         System.out.println("Attempting to send file Encrypted with MY private Key");
@@ -50,7 +55,7 @@ public class ServerWithSecurity {
     }
 
     public void shareSessionKey(){
-	    this.file_Sender.send_SessionKey_With_certs_key(this.their_cert_location);
+	    this.Session_Key = this.file_Sender.send_SessionKey_With_certs_key(this.their_cert_location);
 	    this.clean_Streams();
         System.out.println("Success in Sharing Key..");
     }
@@ -100,6 +105,8 @@ public class ServerWithSecurity {
             out.flush();
             TimeUnit.MILLISECONDS.sleep(10);
             in.skipBytes(in.available());
+            System.out.println("Stream Cleaned");
+            TimeUnit.MILLISECONDS.sleep(10);
         }
         catch(InterruptedException ex){
             System.out.println("INTERRUPTED");

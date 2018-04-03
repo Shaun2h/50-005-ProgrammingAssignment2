@@ -8,6 +8,9 @@ public class PoohClient {
         client.verify_Certs("BOB");
         //client.sendWith_ServerPublicKeyEncrypted(); //FOR SENDING VIA RSA ENCRYPTION
         client.receiveSessionKey();
+        client.clean_Streams();
+        client.send_file_with_AES();
+        //client.clean_Streams();
     }
 }
 

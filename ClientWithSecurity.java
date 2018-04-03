@@ -88,6 +88,12 @@ public class ClientWithSecurity {
 		this.their_cert_location = their_cert_location;
 
 	}
+	public void send_file_with_AES(){
+		if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
+		System.out.println("Attempting to send file Encrypted with AES Key");
+		this.file_Sender.send_File_With_AES("rr.txt",this.Session_Key);
+		System.out.println("COMPLETED SENDING");
+	}
 	public void sendWith_ServerPublicKeyEncrypted(){
 		System.out.println("Attempting to send file encrypted with their public key..");
 		this.file_Sender.send_File_With_certs_key("rr.txt",this.their_cert_location);
@@ -104,6 +110,8 @@ public class ClientWithSecurity {
 			while(in.available()>0){
 				in.read(a);
 			}
+			System.out.println("Stream Cleaned");
+			TimeUnit.MILLISECONDS.sleep(10);
 		}
 		catch(InterruptedException ex){
 			System.out.println("INTERRUPTED");

@@ -8,6 +8,8 @@ public class ServerPiglet {
         server.verify_Certs("ALICE");
         //server.receieve_file_with_SERVER_PrivateKey(); //FOR SENDING VIA RSA ENCRYPTION
         server.shareSessionKey();
-
+        server.clean_Streams();
+        server.receieve_file_with_AES();
+        //server.clean_Streams();
     }
 }

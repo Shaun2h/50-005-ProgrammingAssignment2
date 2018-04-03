@@ -1,4 +1,5 @@
 import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
@@ -283,29 +284,18 @@ public class sendFiles {
         }
         return null;
     }
-    public void send_File_With_PrivateKey_Encrypted(String file_loc,String my_key_location){ //A method to send things with private encryption
+    public void send_File_With_AES(String file_loc,Key session_Key){ //A method to send things with private encryption
         try{
+            IvParameterSpec iv =null;
             int byte_Array_Size = 128;
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
             System.out.println("Created pipe to client");
-
+            TimeUnit.SECONDS.sleep(1);
             this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
             System.out.println("Created pipe from client");
-
-            File key_file = new File(my_key_location);
-            BufferedInputStream key_File_Input_Stream = new BufferedInputStream(new FileInputStream(key_file)); //obtain a buffered input stream of your private key.
-            KeyFactory kf = KeyFactory.getInstance("RSA");
-            byte[] private_key_bytes = new byte[(int) key_file.length() ]; //obtain a byte array that can hold my entire key.
-            key_File_Input_Stream.read(private_key_bytes); //read the entire file into this array..
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes);
-            PrivateKey my_Private_key = kf.generatePrivate(keySpec);
-
-
-            Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            cipher_private.init(Cipher.ENCRYPT_MODE,my_Private_key); //make a cipher with your private key...
-
+            Cipher cipher_private = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher_private.init(Cipher.ENCRYPT_MODE,session_Key,iv); //make a cipher with your private key...
             //ready to begin sending...
-
 
             this.PipetoClient.writeInt(0);
             System.out.println("initiated File sending by sending int 0 over");
@@ -315,8 +305,8 @@ public class sendFiles {
             System.out.println("wrote the file name over");
             //informing of File name completed...
 
-
-            this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream); //new buffered input stream for the wanted file.
+            File f = new File(file_loc);
+            this.bufferedInputStreamForFile = new BufferedInputStream(new FileInputStream(f)); //new buffered input stream for the wanted file.
             byte[] buffer = new byte[byte_Array_Size];
             byte[] after_process;
             File file_being_sent = new File(file_loc);
@@ -329,32 +319,35 @@ public class sendFiles {
             while (total_bytes_sent<file_being_sent.length()) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 after_process = cipher_private.doFinal(buffer);
+                //after_process = Base64.getEncoder().encode(after_process);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
                 this.PipetoClient.flush();
-                this.PipetoClient.writeInt(no_of_bytes_sent);
+                this.PipetoClient.writeInt(after_process.length);
                 this.PipetoClient.flush();
                 this.PipetoClient.write(after_process);
-                System.out.println(buffer);
                 this.PipetoClient.flush();
                 total_bytes_sent+=no_of_bytes_sent;//tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
-                System.out.println("sent one packet over encrypted with my private key");
-                TimeUnit.MILLISECONDS.sleep(100);
+                //System.out.println("sent one packet over encrypted with session key");
+                //TimeUnit.MILLISECONDS.sleep(10);
             }
+            TimeUnit.SECONDS.sleep(2);
+            this.PipetoClient.writeInt(2);
+            TimeUnit.SECONDS.sleep(2);
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
-            key_File_Input_Stream.close();
 
-            TimeUnit.MILLISECONDS.sleep(100);
+
             System.out.println("Ending off sending of file with MY private key encryption...");
+        }
+        catch(InvalidAlgorithmParameterException ex){
+            System.out.println("Invalid Algorithm Parameter Exception");
+            ex.printStackTrace();
         }
         catch(InterruptedException ex){
             System.out.println("Interrupted...?");
             ex.printStackTrace();
         }
-        catch(InvalidKeySpecException ex){
-            System.out.println("Invalid key spec");
-            ex.printStackTrace();
-        }
+
         catch(IllegalBlockSizeException ex){
             System.out.println("Illegal block size!");
             ex.printStackTrace();
