@@ -254,7 +254,7 @@ public class receiveFiles {
             Long Length_of_File = new Long(10);
             byte[] answer;
 
-            BufferedOutputStream bufferedoutputstream=null;
+            this.bufferoutputstream=null;
             Long totalBytesSent=new Long(0);
             while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
@@ -267,7 +267,7 @@ public class receiveFiles {
                     returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
                     this.fileoutput = new FileOutputStream(returnvalue);
                     System.out.println(returnvalue);
-                    bufferedoutputstream = new BufferedOutputStream(this.fileoutput);
+                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
                     Length_of_File = this.dataInputStream.readLong();
 
@@ -278,13 +278,11 @@ public class receiveFiles {
                     //block = Base64.getDecoder().decode(block);
                     answer = cipher.doFinal(block);
                     if (answer.length > 0) {
-                        bufferedoutputstream.write(answer, 0, answer.length);
+                        this.bufferoutputstream.write(answer, 0, answer.length);
                         //this.fileoutput.write(answer, 0, numBytes);
                     }
+                    totalBytesSent+=answer.length;
                     System.out.println("Received a round of packets - session key encrypted type");
-                }
-                if(packetType ==2){
-                    break;
                 }
             }
             TimeUnit.MILLISECONDS.sleep(100);

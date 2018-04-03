@@ -304,12 +304,16 @@ public class sendFiles {
             this.PipetoClient.write(file_loc.getBytes());
             System.out.println("wrote the file name over");
             //informing of File name completed...
-
-            File f = new File(file_loc);
-            this.bufferedInputStreamForFile = new BufferedInputStream(new FileInputStream(f)); //new buffered input stream for the wanted file.
+            File file_being_sent = new File(file_loc);
+            int addtomax=0;
+            if(file_being_sent.length()%117>0){
+                addtomax=1;
+            }
+            int totalbytes_to_besent = ((int) file_being_sent.length())/117*128 + addtomax*128;
+            this.bufferedInputStreamForFile = new BufferedInputStream(new FileInputStream(file_being_sent)); //new buffered input stream for the wanted file.
             byte[] buffer = new byte[byte_Array_Size];
             byte[] after_process;
-            File file_being_sent = new File(file_loc);
+
             //Obtain the File being sent...
 
             this.PipetoClient.writeLong(file_being_sent.length());
@@ -331,13 +335,13 @@ public class sendFiles {
                 //TimeUnit.MILLISECONDS.sleep(10);
             }
             TimeUnit.SECONDS.sleep(2);
-            this.PipetoClient.writeInt(2);
+            //this.PipetoClient.writeInt(2);
             TimeUnit.SECONDS.sleep(2);
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
 
 
-            System.out.println("Ending off sending of file with MY private key encryption...");
+            System.out.println("Ending off sending of file with session key encryption...");
         }
         catch(InvalidAlgorithmParameterException ex){
             System.out.println("Invalid Algorithm Parameter Exception");
