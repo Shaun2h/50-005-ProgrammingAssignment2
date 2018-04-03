@@ -19,4 +19,5 @@ don't do their stupid flag method that just screwed it all over<br>
 Complete verification for certificate both ways. ie. hash a preset message. you could randomise the message but that seems like extra effort with little reward. -COMPLETED<br>
 Padding issue. - COMPLETED. minor error by me.<br>
 Completed AES key exchange part-Check <br>
-Final part: Make sure you encode and decode AES, sending files over- in progress...<br>
+First Final part: Make sure you encode and decode AES, sending files over- in progress...-Check<br>
+Second Final Part: Add a timer, take times, take out all System Print Lines other then required.<br>    
