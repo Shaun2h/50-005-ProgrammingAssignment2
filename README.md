@@ -20,4 +20,5 @@ Complete verification for certificate both ways. ie. hash a preset message. you 
 Padding issue. - COMPLETED. minor error by me.<br>
 Completed AES key exchange part-Check <br>
 First Final part: Make sure you encode and decode AES, sending files over- in progress...-Check<br>
-Second Final Part: Add a timer, take times, take out all System Print Lines other then required.<br>    
+Second Final Part: Add a timer, take times, take out all System Print Lines other then required.-Check<br>    
+Final part: Do check across 2 systems. <br>
