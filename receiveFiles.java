@@ -6,6 +6,7 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
@@ -101,7 +102,7 @@ public class receiveFiles {
                 int packetType = this.dataInputStream.readInt();
                 if (packetType == 0) {
 
-                    System.out.println("Receiving file that was encrypted with my public key....");
+                    //System.out.println("Receiving file that was encrypted with my public key....");
                     int numBytes = this.dataInputStream.readInt();
                     byte[] filename = new byte[numBytes];
                     this.dataInputStream.read(filename);
@@ -114,14 +115,15 @@ public class receiveFiles {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
-                    System.out.println("Received byte array of length (Before Decryption) - " + block.length);
+                    //System.out.println("Received byte array of length (Before Decryption) - " + block.length);
                     answers = cipher.doFinal(block);
-                    System.out.println("Received byte array of length (After Decryption) - " + answers.length);
+                    //System.out.println("Received byte array of length (After Decryption) - " + answers.length);
                     if (numBytes > 0) {
                         System.out.println(new String(answers));
                         this.bufferoutputstream.write(answers, 0, 117); //hard coded to proper array size. it should be 117 after decryption
                     }
                     totalBytesSent+=128;
+                    TimeUnit.MILLISECONDS.sleep(20);
 
                     System.out.println("Received a round of packets -public key encrypted type");
 
@@ -135,6 +137,10 @@ public class receiveFiles {
             if (this.fileoutput != null) {
                 this.fileoutput.close();
             }
+        }
+        catch(InterruptedException ex){
+            System.out.println("INTERRUPTED EXCEPTION");
+            ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
@@ -274,8 +280,9 @@ public class receiveFiles {
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
                     block = new byte[numBytes];
+                    TimeUnit.MILLISECONDS.sleep(90);
                     this.dataInputStream.read(block);
-                    //block = Base64.getDecoder().decode(block);
+                    //System.out.println("int-" + numBytes + " block len - "+ block.length);
                     answer = cipher.doFinal(block);
                     if (answer.length > 0) {
                         this.bufferoutputstream.write(answer, 0, answer.length);
@@ -293,7 +300,7 @@ public class receiveFiles {
             if (this.fileoutput != null) {
                 this.fileoutput.close();
             }
-
+            TimeUnit.SECONDS.sleep(5);
         }
         catch(InvalidAlgorithmParameterException ex){
             System.out.println("Invalid Algorithm Parameter Exception");
@@ -306,6 +313,10 @@ public class receiveFiles {
         catch(BadPaddingException ex){
             System.out.println("Bad Padding Exception");
             System.out.println(block.length);
+            for(byte b: block){
+                System.out.print(b);
+            }
+            System.out.println("");
             ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
@@ -324,6 +335,10 @@ public class receiveFiles {
         catch(NoSuchPaddingException ex){
             System.out.println("No such padding exception");
             ex.printStackTrace();
+        }
+        catch(SocketException ex){
+            System.out.println("completed...");
+            return returnvalue;
         }
         catch(IOException ex){
             System.out.println("IOException Occurred.");

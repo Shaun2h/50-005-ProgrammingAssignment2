@@ -2,6 +2,7 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.net.*;
 import java.net.Socket;
 import java.security.*;
 import java.security.cert.CertificateException;
@@ -56,7 +57,7 @@ public class sendFiles {
                 this.PipetoClient.flush();
                 total_bytes_sent+=no_of_bytes_sent; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over");
-                TimeUnit.MILLISECONDS.sleep(1);
+                TimeUnit.MILLISECONDS.sleep(60);
             }
             PipetoClient.writeInt(2);
             PipetoClient.flush();
@@ -133,11 +134,12 @@ public class sendFiles {
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
                 this.PipetoClient.writeInt(128); //You area always writing arrays of length 128. hardcoded.
                 this.PipetoClient.write(tosend);
-                System.out.println(tosend);
+                //System.out.println(tosend);
+                this.PipetoClient.flush();
                 total_bytes_sent+=no_of_bytes_sent;
                  //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via their public key");
-                TimeUnit.MILLISECONDS.sleep(1);
+                TimeUnit.MILLISECONDS.sleep(60);
             }
             this.bufferedInputStreamForFile.close();
             theircert.close();
@@ -236,9 +238,10 @@ public class sendFiles {
                 this.PipetoClient.write(byte_Array_To_Send);
                 System.out.println("sent aes to client");
                 total_bytes_sent+=no_of_bytes_sent;
+                this.PipetoClient.flush();
                 //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 System.out.println("sent one packet over-via their public key");
-                TimeUnit.MILLISECONDS.sleep(10);
+                TimeUnit.MILLISECONDS.sleep(60);
             }
             System.out.println("Ending sending off file encrpyted with someone's public key");
             TimeUnit.MILLISECONDS.sleep(100);
@@ -287,7 +290,7 @@ public class sendFiles {
     public void send_File_With_AES(String file_loc,Key session_Key){ //A method to send things with private encryption
         try{
             IvParameterSpec iv =null;
-            int byte_Array_Size = 128;
+            int byte_Array_Size = 16000;
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
             System.out.println("Created pipe to client");
             TimeUnit.SECONDS.sleep(1);
@@ -305,38 +308,42 @@ public class sendFiles {
             System.out.println("wrote the file name over");
             //informing of File name completed...
             File file_being_sent = new File(file_loc);
-            int addtomax=0;
-            if(file_being_sent.length()%117>0){
-                addtomax=1;
-            }
-            int totalbytes_to_besent = ((int) file_being_sent.length())/117*128 + addtomax*128;
+            int number_of_blocks = (int)file_being_sent.length()/byte_Array_Size;
+            int totalbytes_to_besent = ((  byte_Array_Size/16 +1 )*16*number_of_blocks) ;
             this.bufferedInputStreamForFile = new BufferedInputStream(new FileInputStream(file_being_sent)); //new buffered input stream for the wanted file.
             byte[] buffer = new byte[byte_Array_Size];
             byte[] after_process;
 
             //Obtain the File being sent...
 
-            this.PipetoClient.writeLong(file_being_sent.length());
+            this.PipetoClient.writeLong(totalbytes_to_besent);
             //inform total file length...
             Long total_bytes_sent= new Long(0);
             int no_of_bytes_sent; //tell them how many bytes was sent...
-            while (total_bytes_sent<file_being_sent.length()) {
+            while (total_bytes_sent<totalbytes_to_besent) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 after_process = cipher_private.doFinal(buffer);
                 //after_process = Base64.getEncoder().encode(after_process);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
-                this.PipetoClient.flush();
+                //this.PipetoClient.flush();
                 this.PipetoClient.writeInt(after_process.length);
-                this.PipetoClient.flush();
+                //this.PipetoClient.flush();
                 this.PipetoClient.write(after_process);
                 this.PipetoClient.flush();
+                for (byte b: after_process){
+                System.out.print(b);
+                }
+                System.out.println("");
                 total_bytes_sent+=no_of_bytes_sent;//tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
                 //System.out.println("sent one packet over encrypted with session key");
-                //TimeUnit.MILLISECONDS.sleep(10);
+                if(total_bytes_sent>totalbytes_to_besent){System.out.println("finished byte requirement.");}
+                TimeUnit.MILLISECONDS.sleep(60);
             }
+            System.out.println("sent all data");
+            this.PipetoClient.flush();
             TimeUnit.SECONDS.sleep(2);
             //this.PipetoClient.writeInt(2);
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.SECONDS.sleep(1);
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
 
@@ -351,7 +358,10 @@ public class sendFiles {
             System.out.println("Interrupted...?");
             ex.printStackTrace();
         }
-
+        catch(SocketException ex){
+          System.out.println("Error with connection. try again.");
+          ex.printStackTrace();
+        }
         catch(IllegalBlockSizeException ex){
             System.out.println("Illegal block size!");
             ex.printStackTrace();
