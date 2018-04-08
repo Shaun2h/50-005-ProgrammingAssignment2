@@ -63,7 +63,8 @@ public class ServerWithSecurity {
 
         if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
         System.out.println("Attempting to send file Encrypted with MY private Key");
-        this.file_Getter.recieveEncryptedWith_public("Serverreceived/",this.privateKey_loc);
+        String a = this.file_Getter.recieveEncryptedWith_public("Serverreceived/",this.privateKey_loc);
+        System.out.println("Saved file Location = "+ a);
         this.clean_Streams();
     }
 

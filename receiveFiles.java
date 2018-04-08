@@ -32,33 +32,48 @@ public class receiveFiles {
             Long totalBytesSent=new Long(0);
             while(totalBytesSent<Length_of_File) {
                 int packetType = this.dataInputStream.readInt();
-                System.out.println("Packet type:" + packetType);
+                //System.out.println("Packet type:" + packetType); //debug message
                 if (packetType == 0) {
 
                     System.out.println("Receiving unencrypted file...");
                     int numBytes = this.dataInputStream.readInt();
-                    System.out.println("Received number of bytes for file name");
+                    //System.out.println("Received number of bytes for file name"); debug message
+
+
+                    TimeUnit.MILLISECONDS.sleep(10);
+                    //You HAVE to sleep. because it takes time on the other computer to write stuff over. If your delay is insufficient, coupled with a slow network,
+                    //your packet being sent will be cut off. i.e. you'll read "valid part-000000000000000000000000000" where it literally says 0 because that bit wasn't written/sent over yet.
+
                     byte[] filename = new byte[numBytes];
                     this.dataInputStream.read(filename);
-                    returnvalue = saveLocation + new String(filename, 0, numBytes);
-                    this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
-                    System.out.println(returnvalue);
-                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
-                    // If the packet is for transferring a chunk of the file
-                    Length_of_File = this.dataInputStream.readLong();
+
+                    returnvalue = saveLocation + new String(filename, 0, numBytes); //now get the return value, which is where the file is located/it's name!!)
+                    this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes)); //open a file stream to that place
+
+                    //System.out.println(returnvalue); //debug message so that you can see what the actual file name is...
+
+                    this.bufferoutputstream = new BufferedOutputStream(this.fileoutput); //open stream
+
+
+                    Length_of_File = this.dataInputStream.readLong(); //obtain total file length
 
                 } else if (packetType == 1) {
+                    int numBytes = this.dataInputStream.readInt(); //get total length of array sent over.
 
-                    int numBytes = this.dataInputStream.readInt();
                     TimeUnit.MILLISECONDS.sleep(10);
+                    //You HAVE to sleep. because it takes time on the other computer to write stuff over. If your delay is insufficient, coupled with a slow network,
+                    //your packet being sent will be cut off. i.e. you'll read "valid part-000000000000000000000000000" where it literally says 0 because that bit wasn't written/sent over yet.
+
                     byte[] block = new byte[numBytes];
-                    this.dataInputStream.read(block);
+                    this.dataInputStream.read(block); //read array.
+
+
                     totalBytesSent += numBytes;
                     if (numBytes > 0) {
                         this.bufferoutputstream.write(block, 0, numBytes);
-                        this.bufferoutputstream.flush();
+                        this.bufferoutputstream.flush(); //Write the bytes out.
                     }
-                    System.out.println("Received a round of packets");
+                    //System.out.println("Received a round of packets"); debug message.
                     }
 
             }
@@ -80,40 +95,70 @@ public class receiveFiles {
         return returnvalue;
     }
     public String recieveEncryptedWith_public(String saveLocation, String my_key_loc) { //so we need to decode with our private key.
-        // If the packet is for transferring the filename
+        // A method for receiving files.
         String returnvalue=null;
         try {
-            File my_key_file = new File(my_key_loc);
+
+
+            File my_key_file = new File(my_key_loc); //open your private key file.
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
+
+
             Long Length_of_File = new Long(10);
             Long totalBytesSent=new Long(0);
+
+
             BufferedInputStream key_File_Buffered_Input_Stream = new BufferedInputStream( new FileInputStream(my_key_file));
+
             KeyFactory kf = KeyFactory.getInstance("RSA");
+
             byte[] private_key_bytes = new byte[(int) my_key_file.length() ]; //obtain a byte array that can hold my entire key.
             key_File_Buffered_Input_Stream.read(private_key_bytes); //read the entire file into this array..
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes);
-            PrivateKey my_Private_key = kf.generatePrivate(keySpec);
+
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes); //generate a keyspec.
+            PrivateKey my_Private_key = kf.generatePrivate(keySpec); //now make your key.
+
+            //initialise cipher
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
-            byte[] answers;
-            while(totalBytesSent<Length_of_File) {
+
+
+            byte[] answers; //a byte array to hold your answers after decryption.
+            while(totalBytesSent<Length_of_File) { //while i'm not done receiving everything...
                 int packetType = this.dataInputStream.readInt();
                 if (packetType == 0) {
 
-                    //System.out.println("Receiving file that was encrypted with my public key....");
+                    System.out.println("Receiving file that was encrypted with my public key....");
+
                     int numBytes = this.dataInputStream.readInt();
+                    //note the total array size that will be sent over.
                     byte[] filename = new byte[numBytes];
+                    //generate said array
+                    TimeUnit.MILLISECONDS.sleep(10);
+                    //sleep to allow for network transmissions/lag time while writing.
+
+
                     this.dataInputStream.read(filename);
+                    //read the name of the file over into your byte array.
+
                     returnvalue = saveLocation + new String(filename, 0, numBytes);
+                    //now you have the return value, which is where this file is located.
+
                     this.fileoutput = new FileOutputStream(saveLocation + new String(filename, 0, numBytes));
+                    //Now you have your file stream
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
-                    // If the packet is for transferring a chunk of the file
-                    Length_of_File = this.dataInputStream.readLong();
+                    //buffered file output stream made.
+
+                    Length_of_File = this.dataInputStream.readLong(); //use this to tell how many bytes are meant to be sent over.
+
+
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
                     byte[] block = new byte[numBytes];
+                    TimeUnit.MILLISECONDS.sleep(20); //give them time to write over..
+
                     this.dataInputStream.read(block);
                     //System.out.println("Received byte array of length (Before Decryption) - " + block.length);
                     answers = cipher.doFinal(block);
@@ -121,11 +166,15 @@ public class receiveFiles {
                     if (numBytes > 0) {
                         System.out.println(new String(answers));
                         this.bufferoutputstream.write(answers, 0, 117); //hard coded to proper array size. it should be 117 after decryption
+                        //if it isn't 117. java has failed lol.
                     }
-                    totalBytesSent+=128;
-                    TimeUnit.MILLISECONDS.sleep(20);
+                    totalBytesSent+=128;//note the constant amount of 128 is due to each being a block of RSA encoded stuff.
 
-                    System.out.println("Received a round of packets -public key encrypted type");
+                    TimeUnit.MILLISECONDS.sleep(20);
+                    //give them time to write.
+
+
+                    //System.out.println("Received a round of packets -public key encrypted type"); //debug message
 
                 }
             }
@@ -173,47 +222,76 @@ public class receiveFiles {
         return returnvalue;
     }
     public Key receive_SessionKey_With_MY_key(String my_key_loc) { //A method to send things with public key encryption
-        Key returnvalue = null;
+        //a method specifically for getting AES keys that were sent over after encoding via my private key.
+
+        Key returnvalue = null; //return value here is a KEY!
+
+
         try {
             File my_key_file = new File(my_key_loc);
             if (this.dataInputStream == null) {
                 this.dataInputStream = new DataInputStream(this.sender.getInputStream());//send data to here to talk to opponent party.}
             }
+
             DataOutputStream output = new DataOutputStream(this.sender.getOutputStream());
+
+
             Long Length_of_File = new Long(10);
             Long totalBytesSent=new Long(0);
-            BufferedInputStream key_File_Buffered_Input_Stream = new BufferedInputStream( new FileInputStream(my_key_file));
+
+
+            BufferedInputStream key_File_Buffered_Input_Stream = new BufferedInputStream( new FileInputStream(my_key_file)); //open my private key
+
             KeyFactory kf = KeyFactory.getInstance("RSA");
             byte[] private_key_bytes = new byte[(int) my_key_file.length() ]; //obtain a byte array that can hold my entire key.
             key_File_Buffered_Input_Stream.read(private_key_bytes); //read the entire file into this array..
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes);
+            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes); //generate a keyspec.
             PrivateKey my_Private_key = kf.generatePrivate(keySpec);
-            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding"); //initialise cipher
             cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
             //Cipher to decrypt is now ready.
             this.dataInputStream.readInt(); //Receive the 0
             System.out.println("Receiving file that was encrypted with my public key....");
             int numBytes = this.dataInputStream.readInt();
-            System.out.println("Received total byte array size: " + numBytes);
+
+
+            //System.out.println("Received total byte array size: " + numBytes);
             byte[] block = new byte[128];
-            byte[] answers;
-            while(this.dataInputStream.available()>0){
+            byte[] answers; // array to hold answers.
+
+            while(this.dataInputStream.available()>0){ //while there are still bytes to read...
+                //basically CLEAN THE STREAM.
                 this.dataInputStream.read(block);
             }
-            output.writeInt(0);
-            this.dataInputStream.read(block);
-            System.out.println("Received byte array of length (Before Decryption) - " + block.length);
+
+
+            output.writeInt(0); //signal ready to receive.
+            TimeUnit.MILLISECONDS.sleep(2); //give them the time to write over and send.
+
+            this.dataInputStream.read(block); //read the block of data.
+
+            /*System.out.println("Received byte array of length (Before Decryption) - " + block.length);
             for( byte v:block){
-                System.out.print(v);
+                System.out.print(v); //uncomment to see the before decryption bit.
             }
             System.out.println("");
+            */
+
+
             answers = cipher.doFinal(block);
             //decrypt the byte array...
-            System.out.println("Received byte array of length (After Decryption) - " + answers.length);
-            System.out.println("Received a round of packets -public key encrypted type");
+
+
+            //System.out.println("Received byte array of length (After Decryption) - " + answers.length); //debug message
+            //System.out.println("Received a round of packets -public key encrypted type"); //debug message
+
             System.out.println("File received.. it was encrypted with my public key");
-            Key key = new SecretKeySpec(answers,0,answers.length,"AES"); //re-obtain key
-            return key;
+            Key key = new SecretKeySpec(answers,0,answers.length,"AES"); //re-obtain key that was sent over.
+            return key; //will be null on failure on any step above. see what's after all the catch blocks
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted");
+            ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
@@ -243,8 +321,11 @@ public class receiveFiles {
             System.out.println("IOException");
             ex.printStackTrace();
         }
-        return returnvalue;
+        return returnvalue;//will be null on failure on any step above.
     }
+
+
+
     public String recieveEncryptedWith_AES(String saveLocation, Key Session_key) {
         //So we need to decode with their public key ie their cert.
         // If the packet is for transferring the filename
@@ -269,6 +350,7 @@ public class receiveFiles {
                     System.out.println("Receiving file that was encrypted with AES key.");
                     int numofBytes = this.dataInputStream.readInt();
                     byte[] filename_Buffer = new byte[numofBytes];
+
                     this.dataInputStream.read(filename_Buffer);
                     returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
                     this.fileoutput = new FileOutputStream(returnvalue);
@@ -280,20 +362,26 @@ public class receiveFiles {
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
                     block = new byte[numBytes];
-                    TimeUnit.MILLISECONDS.sleep(90);
+
+
+                    TimeUnit.MILLISECONDS.sleep(150);
+                    //You HAVE to sleep. because it takes time on the other computer to write stuff over. If your delay is insufficient, coupled with a slow network,
+                    //your packet being sent will be cut off. i.e. you'll read "valid part-000000000000000000000000000" where it literally says 0 because that bit wasn't written/sent over yet.
+
                     this.dataInputStream.read(block);
                     //System.out.println("int-" + numBytes + " block len - "+ block.length);
+
                     answer = cipher.doFinal(block);
                     if (answer.length > 0) {
                         this.bufferoutputstream.write(answer, 0, answer.length);
-                        //this.fileoutput.write(answer, 0, numBytes);
                     }
+
                     totalBytesSent+=answer.length;
-                    System.out.println("Received a round of packets - session key encrypted type");
+                    //System.out.println("Received a round of packets - session key encrypted type");
                 }
             }
             TimeUnit.MILLISECONDS.sleep(100);
-            System.out.println("File received -it was encrypted with private");
+            System.out.println("File received -it was encrypted with AES");
             if (this.bufferoutputstream != null) {
                 this.bufferoutputstream.close();
             }
