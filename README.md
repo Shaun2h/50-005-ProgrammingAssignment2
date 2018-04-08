@@ -7,8 +7,11 @@ sendWith_ServerPublicKeyEncrypted / send_file_with_AES  are the methods inside C
 So add your file name in place of rr.txt to be sent.<br>
 <br>
 
-#TODO:<br>
-Optimise byte array sizes for file sending to reduce overly dramatic effect. From AES using byte arrays which are large and just mass encrypt/sending.
+#TODO:
+<br>
+1. Optimise byte array sizes for file sending to reduce overly dramatic effect. From AES using byte arrays which are large and just mass encrypt/sending.
+<br>
+2. Make it a command line runnable.
 
 
 
