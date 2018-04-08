@@ -21,6 +21,7 @@ public class ClientWithSecurity {
 	private String their_cert_location;
 	private String privateKey_loc;
 	private Key Session_Key;
+	private boolean instantender;
 
 
 	public ClientWithSecurity(String My_CERT, int myPortNum, String targetIP,String privateKey_loc){
@@ -33,8 +34,25 @@ public class ClientWithSecurity {
 		}
 		catch(IOException ex){
 			ex.printStackTrace();
+			this.instantender=true; //there is no point running anything else if i can't make a socket...
 		}
 	}
+
+
+	public boolean failtestcheck(boolean test){
+		if (!test){try
+		{
+			this.socket_To_Server.close();
+			this.instantender=true; //set instant kill flag.
+			return true;
+		}
+		catch(IOException ex){
+			System.out.println("VERIFICATION ERROR");
+		}}
+		return false;
+	}
+
+
 	public void start(){
 		try {
 			this.file_Sender = new sendFiles(this.socket_To_Server);
@@ -44,31 +62,58 @@ public class ClientWithSecurity {
 		System.out.println("got a connection! - client");
 
 	}
+
+
 	public void sendplaincert(){
+		if(instantender){return;} //instakill if some step was failed.
+
 		System.out.println("Attempting to send plain certificate...");
 		this.file_Sender.sendPlainFile(this.client_cert,1024);
 		System.out.println("Completed Cert sending Attempt");
 	}
+
+
+
 	public void receiveSessionKey(){
+		if(instantender){return;} //instakill if some step was failed.
+
+
 		this.Session_Key=this.file_Getter.receive_SessionKey_With_MY_key(this.privateKey_loc);
+		if(this.Session_Key==null){this.instantender = true; return;} //failed to get key. KILL.
 		System.out.println("Success in obtaining Key");
 	}
+
+
+
 	public void verify_Certs(String their_identity){
+		if(instantender){return;} //instakill if some step was failed.
+
+
 		System.out.println("Attempting to verify Cert is from:" + their_identity);
 		certVerifier verifier = new certVerifier(this.socket_To_Server,this.their_cert_location);
 		boolean ve = verifier.verify_is_person(their_identity);
 		System.out.println("IS INDEED FROM: " + their_identity+ " - " + ve);
+		if(this.failtestcheck(ve)){
+			System.out.println("failed verification test. did you spell your server's name correctly");
+			return;
+		}
+
+
 		System.out.println("Sending Encrypted Message..");
-		verifier.send_Encrypted_Message(this.privateKey_loc);
+		verifier.send_Encrypted_Message(this.privateKey_loc); //send them a message encrypted with my private key.
 		System.out.println("sent Encrypted message");
-		this.clean_Streams();
+
+
+		this.clean_Streams(); //clean streams between use!
+
+
 		System.out.println("Receiving Message...");
 		boolean verified = verifier.verify_Cert_and_Message();
 		System.out.println("Verified sender has private key to this cert : " + verified);
-		if(!verified || !ve){
+		if(!verified){
 			try{this.socket_To_Server.close();}
 			catch(IOException ex){
-				System.out.println("ERROR IN VERIFICATION");
+				System.out.println("ERROR IN VERIFICATION OF CERTIFICATE");
 			}
 		}
 		try{
@@ -81,7 +126,11 @@ public class ClientWithSecurity {
 		System.out.println("Mutual Verification Phase is completed.");
 		clean_Streams();
 	}
+
+
+
 	public void receivecert(){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
+		if(instantender){return;} //instakill if some step was failed.
 		System.out.println("Attempting to receive certificate");
 		String their_cert_location = this.file_Getter.recievePlainFile("ClientReceived/");
 		System.out.println("Completed Receiving!");
@@ -89,15 +138,26 @@ public class ClientWithSecurity {
 
 	}
 	public void send_file_with_AES(){
+		if(instantender){return;} //instakill if some step was failed.
+
+
 		if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
 		System.out.println("Attempting to send file Encrypted with AES Key");
 		this.file_Sender.send_File_With_AES("rr.txt",this.Session_Key);
 		System.out.println("COMPLETED SENDING");
+
 	}
+
+
 	public void sendWith_ServerPublicKeyEncrypted(){
+		if(instantender){return;} //instakill if some step was failed.
+
+
 		System.out.println("Attempting to send file encrypted with their public key..");
 		this.file_Sender.send_File_With_certs_key("rr.txt",this.their_cert_location);
-		this.clean_Streams();
+
+		this.clean_Streams(); //clean streams between use...
+
 	}
 
 	public void clean_Streams(){
@@ -124,6 +184,3 @@ public class ClientWithSecurity {
 	}
 }
 
-//long timeStarted = System.nanoTime();
-//long timeTaken = System.nanoTime() - timeStarted;
-//System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
