@@ -20,25 +20,31 @@ public class sendFiles {
         this.receipient = target;
     }
 
-    public void sendPlainFile(String file_loc, int byte_Array_Size){
+    public boolean sendPlainFile(String file_loc, int byte_Array_Size){
         try{
+
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
-            System.out.println("Created pipe to client");
+            //System.out.println("Created pipe to client");//debug message
+
 
             this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
-            System.out.println("Created pipe from client");
+            //System.out.println("Created pipe from client");//debug message
 
-            //i.e if it has not been initated before, initate.
+
+
             this.cert_FileInputStream = new FileInputStream(file_loc);
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream);
+            //open the file streams for your documents to be sent. / the file to be sent. Anything really.
+
+
             byte[] buffer = new byte[byte_Array_Size];
             this.PipetoClient.writeInt(0);
-            System.out.println("initiated File sending by sending int 0 over");
+            //System.out.println("initiated File sending by sending int 0 over"); //debug message
             this.PipetoClient.writeInt(file_loc.getBytes().length);
-            System.out.println("wrote file name length over.");
+            //System.out.println("wrote file name length over.");//debug message
             this.PipetoClient.write(file_loc.getBytes());
             this.PipetoClient.flush();
-            System.out.println("wrote the file name over");
+            //System.out.println("wrote the file name over");//debug message
             //inform them of file name..
             File file_being_sent = new File(file_loc);
             this.PipetoClient.writeLong(file_being_sent.length());
@@ -47,11 +53,17 @@ public class sendFiles {
             while (total_bytes_sent<file_being_sent.length()) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
+
+                TimeUnit.MILLISECONDS.sleep(1);//give them time to write out the next bit. just in case.
+
                 this.PipetoClient.writeInt(no_of_bytes_sent);
                 this.PipetoClient.write(buffer);
-                this.PipetoClient.flush();
+                this.PipetoClient.flush(); //FORCE all things in buffer to be written out.
+
                 total_bytes_sent+=no_of_bytes_sent; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
-                System.out.println("sent one packet over");
+
+
+                //System.out.println("sent one packet over");//debug message
                 TimeUnit.MILLISECONDS.sleep(10);
             }
             PipetoClient.writeInt(2);
@@ -61,7 +73,7 @@ public class sendFiles {
             TimeUnit.MILLISECONDS.sleep(100);
             System.out.println("Ending sending of unencrypted file...");
 
-
+            return true; //it was a success.
 
         }
         catch(InterruptedException ex){
@@ -76,6 +88,8 @@ public class sendFiles {
             System.out.println("ERROR IN CREATING CHANNELS");
             ex.printStackTrace();
         }
+        return false; //if i fail the sending, instantly return false
+
     }
 
 
@@ -99,11 +113,11 @@ public class sendFiles {
 
             //Cipher is now ready for use..
             this.PipetoClient.writeInt(0);
-            System.out.println("initiated File sending by sending Int 0 over...");
+            //System.out.println("initiated File sending by sending Int 0 over...");//debug message
             this.PipetoClient.writeInt(file_loc.getBytes().length);
-            System.out.println("wrote file name length over");
+            //System.out.println("wrote file name length over");//debug message
             this.PipetoClient.write(file_loc.getBytes());
-            System.out.println("Wrote file name over..");
+            //System.out.println("Wrote file name over..");//debug message
             this.PipetoClient.flush();
             //finished informing them of file name...
 
@@ -153,13 +167,13 @@ public class sendFiles {
                  //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
 
                 //System.out.println("sent one packet over-via their public key"); //for debug
-                TimeUnit.MILLISECONDS.sleep(60);
+                TimeUnit.MILLISECONDS.sleep(20);
             }
             this.bufferedInputStreamForFile.close();
             theircert.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
             System.out.println("Ending sending off file encrpyted with someone's public key");
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.SECONDS.sleep(2); //wait for them to finish processing.
 
         }
         catch(InterruptedException ex){
@@ -219,47 +233,57 @@ public class sendFiles {
         try{
             System.out.println("Generating Session key...");
             Key session_Key = AES_Gen();
+            System.out.println("Generation complete.");
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
-            System.out.println("Created pipe to client");
+            //System.out.println("Created pipe to client"); //debug message
             this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
-            System.out.println("Created pipe from client");
+            //System.out.println("Created pipe from client"); //debug message
 
             InputStream theircert = new FileInputStream(their_cert_location); //open their certificate that was sent over.
             CertificateFactory cf = CertificateFactory.getInstance("X.509"); //certificate factory
             X509Certificate receivedCert = (X509Certificate) cf.generateCertificate(theircert); //their cert
             PublicKey their_public_key = receivedCert.getPublicKey(); //their public key extracted from the cert.
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            cipher.init(Cipher.ENCRYPT_MODE,their_public_key);
-
+            cipher.init(Cipher.ENCRYPT_MODE,their_public_key); //initialise cipher
             //Cipher is now ready for use..
+
+            System.out.println("Beginning to send session key over.");
             this.PipetoClient.writeInt(0);
-            System.out.println("initiated File sending by sending Int 0 over...");
+            //System.out.println("initiated File sending by sending Int 0 over..."); //debug message
             byte[] byte_Array_To_Send = cipher.doFinal(session_Key.getEncoded());
-            this.PipetoClient.writeInt(byte_Array_To_Send.length);
-            System.out.println("wrote array length over..");
-            System.out.println("Array Length is currently: " + byte_Array_To_Send.length);
+
+            TimeUnit.MILLISECONDS.sleep(1); //just to let them read it, in case of conflict. this said conflict shouldn't happen, but it did happen a few times for me.
+
+            this.PipetoClient.writeInt(byte_Array_To_Send.length); //tell them how long this key array is. although its gonna be 128 because it's RSA encrypted AES.
+
+
+            //System.out.println("wrote array length over.."); //debug message
+            //System.out.println("Array Length is currently: " + byte_Array_To_Send.length); //debug message
             //finished informing them of file name...
             Long total_bytes_sent= new Long(0);
-            int no_of_bytes_sent; //tell them how many bytes was sent...
+            int no_of_bytes_sent; //holder value so i can tell them how many bytes was sent...
+
             while (total_bytes_sent<byte_Array_To_Send.length) {
                 no_of_bytes_sent = byte_Array_To_Send.length;
-                System.out.println("Total bytes sent over - "+ no_of_bytes_sent);
-                for (byte asd: byte_Array_To_Send){
-                    System.out.print(asd);
+                //System.out.println("Total bytes sent over - "+ no_of_bytes_sent); //debug message
+
+                /*for (byte asd: byte_Array_To_Send){
+                    System.out.print(asd);   //if you need to see the byte array, uncomment this entire portion.
                 }
-                System.out.println("");
+                System.out.println("");*/
+
                 this.PipeFromClient.readInt();
                 this.PipetoClient.write(byte_Array_To_Send);
-                System.out.println("sent aes to client");
+                //System.out.println("sent aes to client"); //debug message
                 total_bytes_sent+=no_of_bytes_sent;
                 this.PipetoClient.flush();
                 //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
-                System.out.println("sent one packet over-via their public key");
+                //System.out.println("sent one packet over-via their public key"); //debug message
                 TimeUnit.MILLISECONDS.sleep(60);
             }
-            System.out.println("Ending sending off file encrpyted with someone's public key");
+            System.out.println("Ending sending off session key encrypted with someone's public key");
             TimeUnit.MILLISECONDS.sleep(100);
-            return session_Key;
+            return session_Key; //return this for future use.
 
 
         }
@@ -299,70 +323,83 @@ public class sendFiles {
             System.out.println("ERROR IN CREATING CHANNELS");
             ex.printStackTrace();
         }
-        return null;
+        return null; //well you didn't exactly suceed in making that key or sending it over..
     }
     public void send_File_With_AES(String file_loc,Key session_Key){ //A method to send things with private encryption
         try{
             IvParameterSpec iv =null;
             int byte_Array_Size = 16000;
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
-            System.out.println("Created pipe to client");
+            //System.out.println("Created pipe to client"); //debug message
             TimeUnit.SECONDS.sleep(1);
             this.PipeFromClient= new DataInputStream(this.receipient.getInputStream());//send data to here to talk to opponent party.}
-            System.out.println("Created pipe from client");
-            Cipher cipher_private = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            //System.out.println("Created pipe from client"); //debug message
+            Cipher cipher_private = Cipher.getInstance("AES/ECB/PKCS5Padding"); //initialise cipher
             cipher_private.init(Cipher.ENCRYPT_MODE,session_Key,iv); //make a cipher with your private key...
             //ready to begin sending...
 
             this.PipetoClient.writeInt(0);
-            System.out.println("initiated File sending by sending int 0 over");
+            //System.out.println("initiated File sending by sending int 0 over"); //debug message
             this.PipetoClient.writeInt(file_loc.getBytes().length);
-            System.out.println("wrote file name length over.");
+            //System.out.println("wrote file name length over."); //debug message
             this.PipetoClient.write(file_loc.getBytes());
-            System.out.println("wrote the file name over");
+            //System.out.println("wrote the file name over"); //debug message
+
             //informing of File name completed...
-            File file_being_sent = new File(file_loc);
+            File file_being_sent = new File(file_loc); //open up the file i want to send.
+
             int number_of_blocks = (int)file_being_sent.length()/byte_Array_Size;
             int totalbytes_to_besent = ((  byte_Array_Size/16 +1 )*16*number_of_blocks) ;
+            //math to calculate the total number of blocks i'll be sending  over.
+            //essentially: how many blocks will be sent over?
+            //             how many bytes are in a single block? * total number of blocks
+            // this gives me the total number of bytes i'll be sending over.
+
+
             this.bufferedInputStreamForFile = new BufferedInputStream(new FileInputStream(file_being_sent)); //new buffered input stream for the wanted file.
             byte[] buffer = new byte[byte_Array_Size];
-            byte[] after_process;
+            byte[] after_process; //byte array to hold the result of a decryption
 
             //Obtain the File being sent...
 
             this.PipetoClient.writeLong(totalbytes_to_besent);
             //inform total file length...
+
+
             Long total_bytes_sent= new Long(0);
+
             int no_of_bytes_sent; //tell them how many bytes was sent...
             while (total_bytes_sent<totalbytes_to_besent) {
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
-                after_process = cipher_private.doFinal(buffer);
-                //after_process = Base64.getEncoder().encode(after_process);
+
+                after_process = cipher_private.doFinal(buffer); //decrypt
+
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
-                //this.PipetoClient.flush();
-                this.PipetoClient.writeInt(after_process.length);
-                //this.PipetoClient.flush();
-                this.PipetoClient.write(after_process);
-                this.PipetoClient.flush();
-                for (byte b: after_process){
-                System.out.print(b);
+                this.PipetoClient.writeInt(after_process.length); //tell them the byte array length
+                this.PipetoClient.write(after_process); //write bytearray out
+                this.PipetoClient.flush(); //FORCE it to be written out.
+                /*for (byte b: after_process){
+                System.out.print(b); //uncomment me to see what bytes are being written out
                 }
-                System.out.println("");
-                total_bytes_sent+=no_of_bytes_sent;//tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
+                System.out.println("");*/
+
+                total_bytes_sent+=no_of_bytes_sent;//update the total number of bytes i've sent.
+
                 //System.out.println("sent one packet over encrypted with session key");
-                if(total_bytes_sent>totalbytes_to_besent){System.out.println("finished byte requirement.");}
-                TimeUnit.MILLISECONDS.sleep(60);
+
+                //if(total_bytes_sent>totalbytes_to_besent){System.out.println("finished byte requirement.");} //just to inform you that i've finished the byte requirement and sent it all. uncomment if you want to know.
+                TimeUnit.MILLISECONDS.sleep(40);
             }
             System.out.println("sent all data");
-            this.PipetoClient.flush();
+            this.PipetoClient.flush(); //Just in case something hasn't been written out.
             TimeUnit.SECONDS.sleep(2);
-            //this.PipetoClient.writeInt(2);
             TimeUnit.SECONDS.sleep(1);
             this.bufferedInputStreamForFile.close();
-            this.cert_FileInputStream.close(); //close the input stream of the file.
-
+            this.cert_FileInputStream.close();
+            //close the input stream of the file.
 
             System.out.println("Ending off sending of file with session key encryption...");
+            return;
         }
         catch(InvalidAlgorithmParameterException ex){
             System.out.println("Invalid Algorithm Parameter Exception");
@@ -404,5 +441,9 @@ public class sendFiles {
             System.out.println("ERROR IN CREATING CHANNELS");
             ex.printStackTrace();
         }
+        System.out.println("FILE SENDING FAILED!"); //well just so you know really.
+        return;
+
+
     }
 }

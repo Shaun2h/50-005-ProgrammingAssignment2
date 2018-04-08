@@ -163,11 +163,13 @@ public class receiveFiles {
                     //System.out.println("Received byte array of length (Before Decryption) - " + block.length);
                     answers = cipher.doFinal(block);
                     //System.out.println("Received byte array of length (After Decryption) - " + answers.length);
+
                     if (numBytes > 0) {
-                        System.out.println(new String(answers));
+                        //System.out.println(new String(answers)); //debug message.
                         this.bufferoutputstream.write(answers, 0, 117); //hard coded to proper array size. it should be 117 after decryption
                         //if it isn't 117. java has failed lol.
                     }
+
                     totalBytesSent+=128;//note the constant amount of 128 is due to each being a block of RSA encoded stuff.
 
                     TimeUnit.MILLISECONDS.sleep(20);
@@ -250,7 +252,11 @@ public class receiveFiles {
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding"); //initialise cipher
             cipher.init(Cipher.DECRYPT_MODE,my_Private_key); //make a cipher with your private key...
             //Cipher to decrypt is now ready.
-            this.dataInputStream.readInt(); //Receive the 0
+
+
+            this.dataInputStream.readInt(); //Receive the 0, informing me that they are beginning to send stuff over.
+
+
             System.out.println("Receiving file that was encrypted with my public key....");
             int numBytes = this.dataInputStream.readInt();
 
@@ -348,16 +354,21 @@ public class receiveFiles {
                 if (packetType == 0) {
 
                     System.out.println("Receiving file that was encrypted with AES key.");
+
                     int numofBytes = this.dataInputStream.readInt();
+                    TimeUnit.MILLISECONDS.sleep(1); //just give them time to write over. I've been cut off because of my bad house internet before.
+
                     byte[] filename_Buffer = new byte[numofBytes];
 
                     this.dataInputStream.read(filename_Buffer);
-                    returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes);
-                    this.fileoutput = new FileOutputStream(returnvalue);
-                    System.out.println(returnvalue);
+                    returnvalue = saveLocation + new String(filename_Buffer, 0, numofBytes); //calculate your file name
+                    this.fileoutput = new FileOutputStream(returnvalue); //create file output stream
+                    //System.out.println(returnvalue); //debug message
+
                     this.bufferoutputstream = new BufferedOutputStream(this.fileoutput);
                     // If the packet is for transferring a chunk of the file
-                    Length_of_File = this.dataInputStream.readLong();
+
+                    Length_of_File = this.dataInputStream.readLong(); //we need to know the total bytes we should be receiving.
 
                 } else if (packetType == 1) {
                     int numBytes = this.dataInputStream.readInt();
@@ -382,13 +393,16 @@ public class receiveFiles {
             }
             TimeUnit.MILLISECONDS.sleep(100);
             System.out.println("File received -it was encrypted with AES");
+
             if (this.bufferoutputstream != null) {
                 this.bufferoutputstream.close();
             }
+
             if (this.fileoutput != null) {
                 this.fileoutput.close();
             }
-            TimeUnit.SECONDS.sleep(5);
+
+            TimeUnit.SECONDS.sleep(5); //do nothing. file ended. just closing up shop really.
         }
         catch(InvalidAlgorithmParameterException ex){
             System.out.println("Invalid Algorithm Parameter Exception");
@@ -402,14 +416,14 @@ public class receiveFiles {
             System.out.println("Bad Padding Exception");
             System.out.println(block.length);
             for(byte b: block){
-                System.out.print(b);
+                System.out.print(b);  //so that you can see where it got cut off.
             }
             System.out.println("");
             ex.printStackTrace();
         }
         catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlockSize Exception");
-            System.out.println(block.length);
+            System.out.println(block.length); //so uh illegal block size. means you sent something over wrongly in some way or another.
             ex.printStackTrace();
         }
         catch(InvalidKeyException ex){
@@ -432,6 +446,6 @@ public class receiveFiles {
             System.out.println("IOException Occurred.");
             ex.printStackTrace();
         }
-        return returnvalue;
+        return returnvalue;//will be null upon failure.
     }
 }
