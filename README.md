@@ -10,10 +10,6 @@ So add your file name in place of rr.txt to be sent.<br>
 #TODO:
 <br>
 1. Optimise byte array sizes for file sending to reduce overly dramatic effect. From AES using byte arrays which are large and just mass encrypt/sending.
-<br>
-2. Make it a command line runnable.
-
-
 
 
 #PROGRESS TRACKER
