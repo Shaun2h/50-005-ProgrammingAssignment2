@@ -8,9 +8,15 @@ public class PoohClient {
         client.verify_Certs("BOB");
         //client.sendWith_ServerPublicKeyEncrypted(); //FOR SENDING VIA RSA ENCRYPTION
         client.receiveSessionKey();
-        client.clean_Streams();
-        client.send_file_with_AES();
+        //client.clean_Streams();
+        //client.send_file_with_AES();
         //client.clean_Streams();
     }
 }
+
+
+
+//long timeStarted = System.nanoTime();
+//long timeTaken = System.nanoTime() - timeStarted;
+//System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
 

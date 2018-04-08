@@ -6,10 +6,17 @@ public class ServerPiglet {
         server.sendplaincert();
         server.clean_Streams();
         server.verify_Certs("ALICE");
-        server.receieve_file_with_SERVER_PrivateKey(); //FOR SENDING VIA RSA ENCRYPTION
-        //server.shareSessionKey();
+        //server.receieve_file_with_SERVER_PrivateKey(); //FOR SENDING VIA RSA ENCRYPTION
+        server.shareSessionKey();
         //server.clean_Streams();
         //server.receieve_file_with_AES();
         //server.clean_Streams();
     }
 }
+
+
+
+
+//long timeStarted = System.nanoTime();
+//long timeTaken = System.nanoTime() - timeStarted;
+//System.out.println("Program took: " + timeTaken/1000000.0 + "ms to run");
