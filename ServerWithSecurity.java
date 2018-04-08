@@ -40,9 +40,20 @@ public class ServerWithSecurity {
 		    e.printStackTrace();
             this.instantender=true; //there is no point running anything else if i can't make a socket...
 		}
-        System.out.println("got a connection! - server");
+        System.out.println("Connected to Client");
 
 	}
+    public void receiveFile(){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
+        if(instantender){return;} //instakill if some step beforehand was failed.
+        System.out.println("Attempting to receive a file");
+        String filename = this.file_Getter.recievePlainFile("Serverreceived/");
+        if(their_cert_location ==null){//the file didn't come through...
+            this.instantender=true;
+            System.out.println("Something went wrong while receiving the other party's file");
+            return;
+        }
+        System.out.println("Completed Receiving file: " + filename);
+    }
 
 
 
@@ -89,12 +100,16 @@ public class ServerWithSecurity {
 
     public void sendplaincert(){
         if(instantender){return;} //instakill if some step was failed.
-
-
-        System.out.println("Attempting to send plain certificate...");
-        this.file_Sender.sendPlainFile(this.my_cert,1024);
+        System.out.println("Attempting to send certificate unencrypted...");
+        boolean success = this.file_Sender.sendPlainFile(this.my_cert,1024);
+        if(this.failtestcheck(success)){ //on failure, trigger all instant kill flags, return.
+            System.out.println("ERROR in process.");
+            return;
+        }
         System.out.println("Completed Cert sending Attempt");
     }
+
+
 
 
     private boolean failtestcheck(boolean test){
@@ -154,6 +169,11 @@ public class ServerWithSecurity {
 
         System.out.println("Attempting to receive certificate");
         String their_cert_location = this.file_Getter.recievePlainFile("Serverreceived/");
+        if(their_cert_location ==null){//the cert didn't come through...
+            this.instantender=true;
+            System.out.println("Something went wrong while receiving the other party's certificate");
+            return;
+        }
         System.out.println("Completed Receiving!");
         this.their_cert_location=their_cert_location;
     }
@@ -168,7 +188,7 @@ public class ServerWithSecurity {
             out.flush();
             TimeUnit.MILLISECONDS.sleep(10);
             in.skipBytes(in.available());
-            System.out.println("Stream Cleaned");
+            //System.out.println("Stream Cleaned"); //debug message. uncomment if you want to know when it's being cleaned
             TimeUnit.MILLISECONDS.sleep(10);
         }
         catch(InterruptedException ex){

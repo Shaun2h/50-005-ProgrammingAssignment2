@@ -59,7 +59,7 @@ public class ClientWithSecurity {
 			this.file_Getter = new receiveFiles(this.socket_To_Server);
 			//wait until you've gotten connected....
 		} catch (Exception e) {e.printStackTrace();}
-		System.out.println("got a connection! - client");
+		System.out.println("Connected to Server");
 
 	}
 
@@ -67,12 +67,25 @@ public class ClientWithSecurity {
 	public void sendplaincert(){
 		if(instantender){return;} //instakill if some step was failed.
 
-		System.out.println("Attempting to send plain certificate...");
-		this.file_Sender.sendPlainFile(this.client_cert,1024);
+		System.out.println("Attempting to send certificate...");
+		boolean success = this.file_Sender.sendPlainFile(this.client_cert,1024);
+		if(this.failtestcheck(success)){ //on failure, trigger all instant kill flags, return
+			System.out.println("ERROR in the process of sending certificates!");
+			return;
+		}
 		System.out.println("Completed Cert sending Attempt");
 	}
 
-
+	public void sendFile(String file_to_send){
+		if(instantender){return;} //instakill if some step was failed previously.
+		System.out.println("Attempting to send file over...");
+		boolean success = this.file_Sender.sendPlainFile(file_to_send,1024);
+		if(this.failtestcheck(success)){ //on failure, trigger all instant kill flags, return.
+			System.out.println("ERROR in process.");
+			return;
+		}
+		System.out.println("Completed File sending Attempt");
+	}
 
 	public void receiveSessionKey(){
 		if(instantender){return;} //instakill if some step was failed.
@@ -128,15 +141,20 @@ public class ClientWithSecurity {
 	}
 
 
-
 	public void receivecert(){ //takes in the argument of whose identity it is. either "ALICE" or "BOB"
-		if(instantender){return;} //instakill if some step was failed.
-		System.out.println("Attempting to receive certificate");
-		String their_cert_location = this.file_Getter.recievePlainFile("ClientReceived/");
-		System.out.println("Completed Receiving!");
-		this.their_cert_location = their_cert_location;
+		if(instantender){return;} //instakill if some step beforehand was failed.
 
+		System.out.println("Attempting to receive certificate");
+		String their_cert_location = this.file_Getter.recievePlainFile("Clientreceived/");
+		if(their_cert_location ==null){ //the cert didn't come through...
+			this.instantender=true;
+			System.out.println("Something went wrong while receiving the other party's certificate");
+			return;
+		}
+		System.out.println("Completed Receiving their cert!");
+		this.their_cert_location=their_cert_location;
 	}
+
 	public void send_file_with_AES(){
 		if(instantender){return;} //instakill if some step was failed.
 
@@ -170,7 +188,7 @@ public class ClientWithSecurity {
 			while(in.available()>0){
 				in.read(a);
 			}
-			System.out.println("Stream Cleaned");
+			//System.out.println("Stream Cleaned"); //debug message. uncomment if you want to know when it's being cleaned
 			TimeUnit.MILLISECONDS.sleep(10);
 		}
 		catch(InterruptedException ex){
