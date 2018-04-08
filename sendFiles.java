@@ -1,6 +1,5 @@
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.net.*;
 import java.net.Socket;
@@ -9,10 +8,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.lang.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 public class sendFiles {
@@ -113,6 +108,7 @@ public class sendFiles {
             //finished informing them of file name...
 
 
+
             //open their file and the required channels.
             this.cert_FileInputStream = new FileInputStream(file_loc); //open the file to be sent
             this.bufferedInputStreamForFile = new BufferedInputStream(this.cert_FileInputStream); //convert to buffered.
@@ -123,22 +119,40 @@ public class sendFiles {
             if(file_being_sent.length()%117>0){
                 addtomax=1;
             }
-            int totalbytes_to_besent = ((int) file_being_sent.length())/117*128 + addtomax*128; //check
+            int totalbytes_to_besent = ((int) file_being_sent.length())/117*128 + addtomax*128; //now we know how many bytes will be sent over.
+
+
+
             this.PipetoClient.writeLong(totalbytes_to_besent); //MATH OF TOTAL BYTES SENT IN THE END IS ABOVE.
+            //told them how many bytes will be sent over, total.
+
+
             Long total_bytes_sent= new Long(0);
-            int no_of_bytes_sent; //tell them how many bytes was sent...
+            int no_of_bytes_sent; //tell them how many bytes was sent in this round.
+
+
             while (total_bytes_sent<totalbytes_to_besent) {
+
                 no_of_bytes_sent = this.bufferedInputStreamForFile.read(buffer);
                 tosend = cipher.doFinal(buffer); //this will result in your 128 array from your 117 array
-                System.out.println("Total bytes sent over - "+ tosend.length);
+
+
+                //System.out.println("Total bytes sent over - "+ tosend.length); //for debug
+
+
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
-                this.PipetoClient.writeInt(128); //You area always writing arrays of length 128. hardcoded.
+
+                this.PipetoClient.writeInt(tosend.length); //You area always writing arrays of length 128. Until the last array, perhaps?
+
                 this.PipetoClient.write(tosend);
                 //System.out.println(tosend);
-                this.PipetoClient.flush();
+
+                this.PipetoClient.flush(); //ensure that it is written out, not stored in the buffer.
+
                 total_bytes_sent+=no_of_bytes_sent;
                  //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
-                System.out.println("sent one packet over-via their public key");
+
+                //System.out.println("sent one packet over-via their public key"); //for debug
                 TimeUnit.MILLISECONDS.sleep(60);
             }
             this.bufferedInputStreamForFile.close();

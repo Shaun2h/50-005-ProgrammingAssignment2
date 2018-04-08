@@ -149,12 +149,12 @@ public class ClientWithSecurity {
 	}
 
 
-	public void sendWith_ServerPublicKeyEncrypted(){
+	public void sendWith_ServerPublicKeyEncrypted(String file){
 		if(instantender){return;} //instakill if some step was failed.
 
 
 		System.out.println("Attempting to send file encrypted with their public key..");
-		this.file_Sender.send_File_With_certs_key("rr.txt",this.their_cert_location);
+		this.file_Sender.send_File_With_certs_key(file,this.their_cert_location);
 
 		this.clean_Streams(); //clean streams between use...
 
