@@ -54,6 +54,7 @@ public class receiveFiles {
                 } else if (packetType == 1) {
 
                     int numBytes = this.dataInputStream.readInt();
+                    TimeUnit.MILLISECONDS.sleep(10);
                     byte[] block = new byte[numBytes];
                     this.dataInputStream.read(block);
                     totalBytesSent += numBytes;
@@ -73,6 +74,9 @@ public class receiveFiles {
                 this.fileoutput.close();
             }
 
+        }
+        catch(InterruptedException ex){
+            ex.printStackTrace();
         }
         catch(IOException ex){
             ex.printStackTrace();
