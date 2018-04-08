@@ -29,26 +29,35 @@ class certVerifier{
     public boolean verify_Cert_and_Message(){
         try{
             DataInputStream input = new DataInputStream(this.given_Socket.getInputStream());
-            DataOutputStream output = new DataOutputStream(this.given_Socket.getOutputStream());
-            //am now ready to receive data.
-            output.writeInt(1);
-            //signalled to them that i am ready to receive one.
+            DataOutputStream output = new DataOutputStream(this.given_Socket.getOutputStream());//am now ready to receive data.
+
+
+            output.writeInt(1);//signalled to them that i am ready to receive one.
+
             int byte_array_len = input.readInt(); //now obtain the total length of the message that is encrypted
-            byte[] message_array = new byte[byte_array_len];
-            System.out.println("byte array len - "+ byte_array_len);
+            byte[] message_array = new byte[byte_array_len]; //generate a byte array.
+            //System.out.println("byte array len - "+ byte_array_len); //debug
+
+
             output.writeInt(1);  //signalled that I am ready to receive actual message;
+
             input.read(message_array); //obtain actual byte array.
+
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
             CertificateFactory cf = CertificateFactory.getInstance("X.509");//for generating certificate item
             X509Certificate their_cert = (X509Certificate) cf.generateCertificate(a); //Unknown's Cert.
             PublicKey their_key = their_cert.getPublicKey(); //extract CSE public key
-            for(byte bb: message_array){
-                System.out.print(bb);
+
+            /*for(byte bb: message_array){
+                System.out.print(bb); //debug util.
             }
             System.out.println("");
+            */
+
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,their_key);
             //System.out.println(message_array.length);
+
             byte[] byte_answer = cipher.doFinal(message_array);
             String answer = new String(byte_answer);
             //System.out.println(answer);
@@ -103,25 +112,32 @@ class certVerifier{
 
             Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher_private.init(Cipher.ENCRYPT_MODE,my_Private_key); //make a cipher with your private key...
-            byte[] messageBytes = message.getBytes();
+            byte[] messageBytes = message.getBytes(); //obtain byte array of item.
             //if you have 1024 bits for your key, which we do, you can have
             // (1024/8 -11) characters encrypted.
             //so, to hold your stuff,
-            byte[] ans = cipher_private.doFinal(messageBytes);
-            for(byte bb: messageBytes) {
-                System.out.print(bb);
+
+            byte[] ans = cipher_private.doFinal(messageBytes); // encrypt.
+
+            /*for(byte bb: messageBytes) {
+                System.out.print(bb); //uncomment to see what message is about to be sent)
             }
             System.out.println("");
-            for(byte bb: ans) {
-                System.out.print(bb);
+            */
+
+            /*for(byte bb: ans) {
+                System.out.print(bb); //uncomment to see what message looks like after encryption
             }
             System.out.println("");
-            System.out.println("Message byte count = "+ans.length);
+            System.out.println("Message byte count after encryption= "+ans.length); //debug code.
+            */
+
             input.readInt(); //wait for them to send a ready.
-            output.writeInt(ans.length);
+            output.writeInt(ans.length); //state the length of the byte array i am sending over.
             input.readInt();
-            output.write(ans); //
-            output.flush();
+            output.write(ans); // send actual array over.
+            output.flush(); //ensure it is written over.
+
             TimeUnit.MILLISECONDS.sleep(100);
         }
         catch(InterruptedException ex){
@@ -167,7 +183,7 @@ class certVerifier{
             CSE_cert.checkValidity(); //check validity of CSE cert. Will throw an exception.
             PublicKey CSE_key = CSE_cert.getPublicKey(); //extract CSE public key
             unknown_cert.verify(CSE_key);//verify unknown cert was signed with CSE public key.
-            String[] unknown_info = unknown_cert.getSubjectDN().getName().split(", ");
+            String[] unknown_info = unknown_cert.getSubjectDN().getName().split(", "); //split by commas.
             //There are only 2 people in this ecosystem. So if it does not match with ALICE or bob, it is not valid.
             /*
             for(String s: unknown_info ){
@@ -177,14 +193,14 @@ class certVerifier{
             ArrayList<String> source = null;
             gen_info info_source = new gen_info();
             if(who.equals("ALICE")){
-                source = info_source.genalice();
+                source = info_source.genalice(); //generate an arraylist of the alice items.
             }
             if(who.equals("BOB")){
-                source = info_source.genbob();
+                source = info_source.genbob(); //generate an arraylist of the alice items.
             }
             try{
                 for(int i=0; i<unknown_info.length; i++){
-                    if(!unknown_info[i].equals(source.get(i))){
+                    if(!unknown_info[i].equals(source.get(i))){ //confirm the entity you are dealing with is really bob/Alice
                         System.out.println("CERT INFO VERIFICATION FAILURE");
                         //System.out.println(unknown_info[i]); //debug info. where was the info different?
                         //System.out.println(source.get(i)); //debug info. where was the info different?
@@ -211,6 +227,8 @@ class certVerifier{
 
 
 class gen_info{
+    //generate the items here!
+
   public static ArrayList<String> genalice(){
     ArrayList<String> a= new ArrayList<>();
     a.add("EMAILADDRESS=Alice@alice.alice");
