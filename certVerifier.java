@@ -224,11 +224,18 @@ class certVerifier{
         //else, it is valid. return true.
         return true; //if it has passed all checks.
     }
-        catch(Exception ex){
-            System.out.println("Exception in verifying certificate.");
+    catch(FileNotFoundException ex){
+        System.out.println(this.CA_cert_loc);
+        System.out.println(this.given_cert_loc);
             ex.printStackTrace();
             return false;
-        }
+    }
+    catch(Exception ex){
+        System.out.println("Exception in verifying certificate.");
+        ex.printStackTrace();
+        return false;
+    }
+
     }
 }
 
