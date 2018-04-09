@@ -137,7 +137,7 @@ public class sendFiles {
             File file_being_sent = new File(file_loc);
             int totalbytes_to_besent = (int) Math.ceil((double) file_being_sent.length()/117)*128; //now we know how many bytes will be sent over.
 
-            System.out.println(file_being_sent.length());
+            //System.out.println(file_being_sent.length());
 
             this.PipetoClient.writeLong(totalbytes_to_besent); //MATH OF TOTAL BYTES SENT IN THE END IS ABOVE.
             //told them how many bytes will be sent over, total.

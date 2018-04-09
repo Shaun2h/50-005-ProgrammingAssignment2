@@ -127,7 +127,7 @@ public class receiveFiles {
             byte[] answers; //a byte array to hold your answers after decryption.
             while(totalBytesSent<Length_of_File) { //while i'm not done receiving everything...
                 int packetType = this.dataInputStream.readInt();
-                System.out.println(packetType); //allows you to check packet types
+                //System.out.println(packetType); //allows you to check packet types
                 if (packetType == 0) {
 
                     System.out.println("Receiving file that was encrypted with my public key....");
@@ -166,17 +166,16 @@ public class receiveFiles {
 
                     if (numBytes > 0) {
                         //System.out.println(new String(answers)); //debug message.
-                        this.bufferoutputstream.write(answers, 0, numBytes); //hard coded to proper array size. it should be 117 after decryption
-                        //if it isn't 117. java has failed lol.
+                        this.bufferoutputstream.write(answers, 0, numBytes); // numBytes varies. because it's a pointer to the total number of useful bytes.
                     }
 
                     totalBytesSent+=block.length;//note the constant amount of 128 is due to each being a block of RSA encoded stuff.
-                    System.out.println(totalBytesSent);
-                    for (byte b: answers){
-                        System.out.print(b);
+                    //System.out.println(totalBytesSent); //lets you know the current total bytes received
+                    /*for (byte b: answers){
+                        System.out.print(b); //debug message to allow you to see bytes being sent in
                     }
-                    System.out.println("");
-                    System.out.println(answers.length);
+                    System.out.println("");*/
+                    //System.out.println(answers.length); //debug message to see the decrypted amount's length
                     TimeUnit.MICROSECONDS.sleep(2);
                     //give them time to write.
 
