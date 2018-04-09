@@ -179,7 +179,7 @@ public class ClientWithSecurity {
 	}
 
 	public void clean_Streams(){
-		try{
+		/*try{
 			DataInputStream in = new DataInputStream(this.socket_To_Server.getInputStream());
 			DataOutputStream out = new DataOutputStream(this.socket_To_Server.getOutputStream());
 			out.flush();
@@ -199,6 +199,7 @@ public class ClientWithSecurity {
 			System.out.println("IOEXCEPTION CLEANING STREAM");
 			ex.printStackTrace();
 		}
+		*/
 	}
 }
 

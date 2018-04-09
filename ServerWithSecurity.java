@@ -182,7 +182,7 @@ public class ServerWithSecurity {
 
     public void clean_Streams(){
         if(instantender){return;} //instakill if some step was failed. anyway the socket would be closed..
-        try{
+        /*try{
             DataInputStream in = new DataInputStream(this.socket_To_Client.getInputStream());
             DataOutputStream out = new DataOutputStream(this.socket_To_Client.getOutputStream());
             out.flush();
@@ -198,7 +198,7 @@ public class ServerWithSecurity {
         catch(IOException ex){
             System.out.println("IOEXCEPTION CLEANING STREAM");
             ex.printStackTrace();
-        }
+        }*/
     }
 
 }
