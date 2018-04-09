@@ -4,7 +4,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.lang.*;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.security.cert.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;

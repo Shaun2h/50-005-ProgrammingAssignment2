@@ -1,13 +1,6 @@
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.concurrent.TimeUnit;
 
 public class ClientWithSecurity {
@@ -117,9 +110,6 @@ public class ClientWithSecurity {
 		System.out.println("sent Encrypted message");
 
 
-		this.clean_Streams(); //clean streams between use!
-
-
 		System.out.println("Receiving Message...");
 		boolean verified = verifier.verify_Cert_and_Message();
 		System.out.println("Verified sender has private key to this cert : " + verified);
@@ -137,7 +127,6 @@ public class ClientWithSecurity {
 			ex.printStackTrace();
 		}
 		System.out.println("Mutual Verification Phase is completed.");
-		clean_Streams();
 	}
 
 
@@ -169,12 +158,8 @@ public class ClientWithSecurity {
 
 	public void sendWith_ServerPublicKeyEncrypted(String file){
 		if(instantender){return;} //instakill if some step was failed.
-
-
 		System.out.println("Attempting to send file encrypted with their public key..");
 		this.file_Sender.send_File_With_certs_key(file,this.their_cert_location);
-
-		this.clean_Streams(); //clean streams between use...
 
 	}
 

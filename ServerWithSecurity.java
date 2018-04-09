@@ -76,7 +76,6 @@ public class ServerWithSecurity {
         System.out.println("Attempting to send file Encrypted with MY private Key");
         String a = this.file_Getter.recieveEncryptedWith_public("Serverreceived/",this.privateKey_loc);
         System.out.println("Saved file Location = "+ a);
-        this.clean_Streams();
     }
 
 
@@ -92,7 +91,6 @@ public class ServerWithSecurity {
             System.out.println("FAILED TO GET SESSION KEY.");
             return;
         }
-	    this.clean_Streams(); //clean the streams between usage.
 
         System.out.println("Success in Sharing Key..");
     }
@@ -147,8 +145,6 @@ public class ServerWithSecurity {
         System.out.println("Sending Encrypted message..");
         verifier.send_Encrypted_Message(this.privateKey_loc);
         System.out.println("Completed sending of encrypted message.");
-
-        clean_Streams(); //clean the streams in between send and receives.
 
 
         try{

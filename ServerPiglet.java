@@ -61,7 +61,6 @@ public class ServerPiglet {
 
             server.receivecert();
             server.sendplaincert();
-            server.clean_Streams();
 
             server.verify_Certs(who_is_that);
             if(type.equals("1")){
@@ -72,9 +71,7 @@ public class ServerPiglet {
             }//FOR SENDING VIA RSA ENCRYPTION
             if(type.equals("3")){
                 server.shareSessionKey();
-                server.clean_Streams();
                 server.receieve_file_with_AES();
-                server.clean_Streams();
             }
 
 

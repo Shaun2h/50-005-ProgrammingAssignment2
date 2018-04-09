@@ -68,7 +68,6 @@ public class PoohClient {
             long timeStarted = System.nanoTime();
             client.sendplaincert();
             client.receivecert();
-            client.clean_Streams();
             client.verify_Certs(who_is_that);
 
             if(type.equals("1")){
@@ -79,9 +78,7 @@ public class PoohClient {
             }
             if(type.equals("3")){
                 client.receiveSessionKey();
-                client.clean_Streams();
                 client.send_file_with_AES();
-                client.clean_Streams();
             }
 
 
