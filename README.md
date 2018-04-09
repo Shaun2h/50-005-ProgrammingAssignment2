@@ -9,7 +9,8 @@ So add your file name in place of rr.txt to be sent.<br>
 
 #TODO:
 <br>
-1. Optimise byte array sizes for file sending to reduce overly dramatic effect. From AES using byte arrays which are large and just mass encrypt/sending.
+1. Optimise byte array sizes for file sending to reduce overly dramatic effect. From AES using byte arrays which are large and just mass encrypt/sending.-CHECK<br>
+    byte arrays are now 128 in length at any point of time.
 
 
 #PROGRESS TRACKER
