@@ -417,7 +417,6 @@ public class receiveFiles {
                 this.fileoutput.close();
             }
 
-            TimeUnit.SECONDS.sleep(5); //do nothing. file ended. just closing up shop really.
         }
         catch(InvalidAlgorithmParameterException ex){
             System.out.println("Invalid Algorithm Parameter Exception");
