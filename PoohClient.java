@@ -8,7 +8,8 @@ public class PoohClient {
         String portnum="";
         String who;
         String privatekey="";
-        String targetip="";
+        String targetip="localhost";
+        //"10.12.141.174"
         String who_is_that="";
         boolean do_or_dont=true;
         try {
@@ -59,7 +60,7 @@ public class PoohClient {
             System.out.println("3 = send the file with AES encryption, after ensuring certificates are correct, and exchanging keys.");
             System.out.println("if you enter anything else, the server won't do anything and will exit immediately after verifying certificates.");
             String type = inputreader.readLine();
-            System.out.println("initialising server....");
+            System.out.println("initialising client....");
 
             ClientWithSecurity client = new ClientWithSecurity(certloc, Integer.parseInt(portnum), targetip, privatekey);
             System.out.println("Attempting to do find server.");

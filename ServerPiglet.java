@@ -9,7 +9,6 @@ public class ServerPiglet {
         String portnum="";
         String who;
         String privatekey="";
-        String targetip="";
         String who_is_that="";
         boolean do_or_dont=true;
         try{
