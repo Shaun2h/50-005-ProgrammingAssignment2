@@ -60,8 +60,8 @@ public class sendFiles {
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
 
                 //TimeUnit.MILLISECONDS.sleep(1);//give them time to write out the next bit. just in case.
-
-                this.PipetoClient.writeInt(no_of_bytes_sent);
+                this.PipetoClient.writeInt(buffer.length); //tell them the array length..
+                this.PipetoClient.writeInt(no_of_bytes_sent); //tell them the actual useful bytes to write from the array
                 this.PipetoClient.write(buffer);
                 this.PipetoClient.flush(); //FORCE all things in buffer to be written out.
 
@@ -73,7 +73,7 @@ public class sendFiles {
             }
             //PipetoClient.writeInt(2);
             PipetoClient.flush();
-            TimeUnit.SECONDS.sleep(2); //wait for them to finish processing.
+            PipeFromClient.readInt();//wait for them to finish processing.
             this.bufferedInputStreamForFile.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
             TimeUnit.MILLISECONDS.sleep(100);

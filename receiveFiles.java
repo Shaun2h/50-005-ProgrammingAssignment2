@@ -69,13 +69,14 @@ public class receiveFiles {
                     //You HAVE to sleep. because it takes time on the other computer to write stuff over. If your delay is insufficient, coupled with a slow network,
                     //your packet being sent will be cut off. i.e. you'll read "valid part-000000000000000000000000000" where it literally says 0 because that bit wasn't written/sent over yet.
 
-                    byte[] block = new byte[numBytes];
+                    byte[] block = new byte[numBytes]; //create a new array using said length
+                    int towrite=this.dataInputStream.readInt(); //obtain the actually useful bytes
                     this.dataInputStream.read(block); //read array.
 
 
                     totalBytesSent += numBytes;
                     if (numBytes > 0) {
-                        this.bufferoutputstream.write(block, 0, numBytes);
+                        this.bufferoutputstream.write(block, 0, towrite);
                         this.bufferoutputstream.flush(); //Write the bytes out.
                     }
                     //System.out.println("Received a round of packets"); //debug message.
@@ -83,6 +84,7 @@ public class receiveFiles {
 
             }
             System.out.println("Reception of unencrypted file is complete.");
+            this.dataOutputStream.writeInt(3);
             if (this.bufferoutputstream != null) {
                 this.bufferoutputstream.close();
             }
