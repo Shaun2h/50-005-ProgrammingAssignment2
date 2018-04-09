@@ -28,9 +28,10 @@ class certVerifier{
     }
     public boolean verify_Cert_and_Message(){
         try{
+            System.out.println("beginning verification that sender indeed owns cert.");
             DataInputStream input = new DataInputStream(this.given_Socket.getInputStream());
             DataOutputStream output = new DataOutputStream(this.given_Socket.getOutputStream());//am now ready to receive data.
-
+            TimeUnit.SECONDS.sleep(2);
 
             output.writeInt(1);//signalled to them that i am ready to receive one.
 
@@ -38,11 +39,11 @@ class certVerifier{
             byte[] message_array = new byte[byte_array_len]; //generate a byte array.
             //System.out.println("byte array len - "+ byte_array_len); //debug
 
-
+            TimeUnit.MILLISECONDS.sleep(10);
             output.writeInt(1);  //signalled that I am ready to receive actual message;
-
+            TimeUnit.MILLISECONDS.sleep(10);
             input.read(message_array); //obtain actual byte array.
-
+            System.out.println("got their encrypted message.");
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
             CertificateFactory cf = CertificateFactory.getInstance("X.509");//for generating certificate item
             X509Certificate their_cert = (X509Certificate) cf.generateCertificate(a); //Unknown's Cert.
@@ -61,10 +62,15 @@ class certVerifier{
             byte[] byte_answer = cipher.doFinal(message_array);
             String answer = new String(byte_answer);
             //System.out.println(answer);
+            System.out.println("verification completed...");
             if (!answer.equals("This is a message")){
                 return false;
             }
             return true;
+        }
+        catch(InterruptedException ex){
+            System.out.println("Interrupted..?");
+            ex.printStackTrace();
         }
         catch(NoSuchPaddingException ex){
             System.out.println("No such Padding Exception");
@@ -98,6 +104,7 @@ class certVerifier{
     }
     public void send_Encrypted_Message(String my_Private_Key_loc){
         try{
+            System.out.println("beginning to send encrypted message");
             DataOutputStream output = new DataOutputStream(given_Socket.getOutputStream());
             DataInputStream input = new DataInputStream(given_Socket.getInputStream());
             String message= "This is a message";
