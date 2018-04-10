@@ -8,8 +8,8 @@ public class PoohClient {
         String portnum="";
         String who;
         String privatekey="";
-        String targetip="localhost";
-        //"10.12.141.174"
+        String targetip="10.12.141.174";
+        //"localhost"
         String who_is_that="";
         boolean do_or_dont=true;
         try {
@@ -22,6 +22,7 @@ public class PoohClient {
                 who_is_that = "BOB";
                 do_or_dont=false;
             }
+
             if (do_or_dont) {
 
                 System.out.println("Please enter your cert file name (Case sensitive, space sensitive, just sensitive in general) type d for default.");
@@ -78,7 +79,7 @@ public class PoohClient {
             }
             if(type.equals("3")){
                 client.receiveSessionKey();
-                client.send_file_with_AES();
+                client.send_file_with_AES(filename);
             }
 
 

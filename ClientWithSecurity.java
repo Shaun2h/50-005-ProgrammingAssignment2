@@ -144,13 +144,13 @@ public class ClientWithSecurity {
 		this.their_cert_location=their_cert_location;
 	}
 
-	public void send_file_with_AES(){
+	public void send_file_with_AES(String file){
 		if(instantender){return;} //instakill if some step was failed.
 
 
 		if (this.their_cert_location==null){return;} //cancel if you don't have their cert.
 		System.out.println("Attempting to send file Encrypted with AES Key");
-		this.file_Sender.send_File_With_AES("rr.txt",this.Session_Key);
+		this.file_Sender.send_File_With_AES(file,this.Session_Key);
 		System.out.println("COMPLETED SENDING");
 
 	}

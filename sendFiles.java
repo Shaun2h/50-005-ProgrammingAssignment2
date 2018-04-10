@@ -175,7 +175,7 @@ public class sendFiles {
             this.bufferedInputStreamForFile.close();
             theircert.close();
             this.cert_FileInputStream.close(); //close the input stream of the file.
-            System.out.println("Ending sending off file encrpyted with someone's public key");
+            System.out.println("Ending sending off file encrypted with someone's public key");
             this.PipeFromClient.readInt();//wait for them to finish processing
             System.out.println("Server has signalled completed receiving file. ending.");
 
