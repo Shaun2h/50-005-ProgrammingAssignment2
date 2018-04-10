@@ -125,13 +125,13 @@ public class ServerWithSecurity {
     }
 
 
-    public void verify_Certs(String their_identity){
+    public void verify_Certs(String their_identity, boolean microcosm){
         if(instantender){return;} //instakill if some step was failed.
 
 
         System.out.println("Attempting to verify Cert is from: " + their_identity);
         certVerifier verifier = new certVerifier(this.socket_To_Client,their_cert_location);
-        boolean ve = verifier.verify_is_person(their_identity);
+        boolean ve = verifier.verify_is_person(their_identity, microcosm);
         System.out.println("IS INDEED FROM: " + their_identity+ " - " + ve);
         if(failtestcheck(ve)){return;} //upon failure to verify is alice/bob, kill entire program, closing the socket.
 

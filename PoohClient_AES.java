@@ -2,7 +2,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class PoohClient {
+public class PoohClient_AES {
     public static void main(String[] args){
         String certloc="";
         String portnum="";
@@ -27,6 +27,7 @@ public class PoohClient {
                 privatekey = "unencryptedprivatekeyALICE.der";
                 who_is_that = "BOB";
                 do_or_dont=false;
+                System.out.println("Default settings have been selected.");
             }
 
             if (do_or_dont) {
@@ -37,9 +38,9 @@ public class PoohClient {
                 portnum = inputreader.readLine();
                 System.out.println("enter private key. type d for default. Keep in mind this system only accepts ALICE and BOB's Cert. this is more of where the private key is located.");
                 privatekey = inputreader.readLine();
-                System.out.println("enter who the opposing party is. type d for default. Actually there isn't a point in typing anything else. it's ALICE by default. anything you else is taken as BOB");
+                System.out.println("enter who the opposing party is. type d for default.");
                 who = inputreader.readLine();
-                System.out.println("enter who the opposing party is. type d for default. Actually there isn't a point in typing anything else. it's ALICE by default. anything you else is taken as BOB");
+                System.out.println("enter target IP address ");
                 targetip = inputreader.readLine();
                 if (certloc.equals("d")) {
                     certloc = "Alice_Cert.crt";
@@ -60,35 +61,17 @@ public class PoohClient {
 
             System.out.println("Please enter the file you want sent over. Ensure it is in the same directory");
             String filename = inputreader.readLine();
-
-            System.out.println("Please enter what type of file sending you are looking for:");
-            System.out.println("1 = send the file plain, after ensuring certificates are correct");
-            System.out.println("2 = send the file encrypted with RSA encryption, after ensuring certificates are correct");
-            System.out.println("3 = send the file with AES encryption, after ensuring certificates are correct, and exchanging keys.");
-            System.out.println("if you enter anything else, the server won't do anything and will exit immediately after verifying certificates.");
-            String type = inputreader.readLine();
-            System.out.println("initialising client....");
+            System.out.println("initialising client.... (AES only)");
 
             ClientWithSecurity client = new ClientWithSecurity(certloc, Integer.parseInt(portnum), targetip, privatekey);
-            System.out.println("Attempting to do find server.");
+            System.out.println("Attempting to find server.");
             client.start();
             long timeStarted = System.nanoTime();
             client.sendplaincert();
             client.receivecert();
             client.verify_Certs(who_is_that,disablecheck);
-
-            if(type.equals("1")){
-                client.sendFile(filename);
-            }
-            if(type.equals("2")){
-                client.sendWith_ServerPublicKeyEncrypted(filename); //FOR SENDING VIA RSA ENCRYPTION
-            }
-            if(type.equals("3")){
-                client.receiveSessionKey();
-                client.send_file_with_AES(filename);
-            }
-
-
+            client.receiveSessionKey();
+            client.send_file_with_AES(filename);
             long timeTaken = System.nanoTime() - timeStarted;
             System.out.println("Program took: " + timeTaken / 1000000.0 + "ms to run - Client side Timing");
         }
