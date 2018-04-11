@@ -30,7 +30,7 @@ class certVerifier{
             System.out.println("beginning verification that sender indeed owns cert.");
             DataInputStream input = new DataInputStream(this.given_Socket.getInputStream());
             DataOutputStream output = new DataOutputStream(this.given_Socket.getOutputStream());//am now ready to receive data.
-            TimeUnit.SECONDS.sleep(2);
+            TimeUnit.MILLISECONDS.sleep(1);
 
             output.writeInt(1);//signalled to them that i am ready to receive one.
 
@@ -38,9 +38,9 @@ class certVerifier{
             byte[] message_array = new byte[byte_array_len]; //generate a byte array.
             //System.out.println("byte array len - "+ byte_array_len); //debug
 
-            TimeUnit.MILLISECONDS.sleep(10);
+            TimeUnit.MILLISECONDS.sleep(1);
             output.writeInt(1);  //signalled that I am ready to receive actual message;
-            TimeUnit.MILLISECONDS.sleep(10);
+            TimeUnit.MILLISECONDS.sleep(1);
             input.read(message_array); //obtain actual byte array.
             System.out.println("got their encrypted message.");
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
@@ -179,7 +179,8 @@ class certVerifier{
             ex.printStackTrace();
         }
     }
-    public boolean verify_is_person(String who){
+    public boolean verify_is_person(String who,boolean disable){
+        if (disable){return true;}
         try{
             InputStream f = new FileInputStream(this.CA_cert_loc); //Certififying authority's file
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
