@@ -383,11 +383,12 @@ public class receiveFiles {
                     //System.out.println(Length_of_File); //If you need to see the file length. Allows you to debug your math, if you calculated the final total size to be sent over wrongly.
                     //System.out.println(totalBytesSent);
                 } else if (packetType == 1) {
+                    block = new byte[this.dataInputStream.readInt()];
                     int numBytes = this.dataInputStream.readInt();
-                    block = new byte[128];
 
 
-                    TimeUnit.MICROSECONDS.sleep(2);
+
+                    TimeUnit.MICROSECONDS.sleep(500);
                     //You HAVE to sleep. because it takes time on the other computer to write stuff over. If your delay is insufficient, coupled with a slow network,
                     //your packet being sent will be cut off. i.e. you'll read "valid part-000000000000000000000000000" where it literally says 0 because that bit wasn't written/sent over yet.
 

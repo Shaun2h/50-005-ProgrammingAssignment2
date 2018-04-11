@@ -61,7 +61,7 @@ public class ClientWithSecurity {
 		if(instantender){return;} //instakill if some step was failed.
 
 		System.out.println("Attempting to send certificate...");
-		boolean success = this.file_Sender.sendPlainFile(this.client_cert,1024);
+		boolean success = this.file_Sender.sendPlainFile(this.client_cert);
 		if(this.failtestcheck(success)){ //on failure, trigger all instant kill flags, return
 			System.out.println("ERROR in the process of sending certificates!");
 			return;
@@ -72,7 +72,7 @@ public class ClientWithSecurity {
 	public void sendFile(String file_to_send){
 		if(instantender){return;} //instakill if some step was failed previously.
 		System.out.println("Attempting to send file over...");
-		boolean success = this.file_Sender.sendPlainFile(file_to_send,1024);
+		boolean success = this.file_Sender.sendPlainFile(file_to_send);
 		if(this.failtestcheck(success)){ //on failure, trigger all instant kill flags, return.
 			System.out.println("ERROR in process.");
 			return;

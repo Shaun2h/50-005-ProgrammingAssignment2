@@ -14,11 +14,13 @@ public class ServerPiglet_AES {
         boolean disablecheck=false;
         try{
             System.out.println("are you running this server for someone other then alice and bob?");
-            if(inputreader.readLine().equals("y") || inputreader.readLine().equals("Y")){
+            String hold = inputreader.readLine();
+            if(hold.equals("y") || hold.equals("Y")){
                 disablecheck=true;
             }
             System.out.println("running using default settings? type \"y\" if this is so. case sensitive");
-            if(inputreader.readLine().equals("y")){
+            hold = inputreader.readLine();
+            if(hold.equals("y") || hold.equals("Y")){
                 certloc = "Bob_Cert.crt";
                 portnum = "4321";
                 privatekey = "unencryptedprivatekeyBOB.der";

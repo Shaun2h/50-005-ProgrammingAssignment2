@@ -14,14 +14,15 @@ public class PoohClient_RSA {
         boolean do_or_dont=true;
         boolean disablecheck=false;
         try {
-
             BufferedReader inputreader = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("are you running this server for someone other then alice and bob?");
-            if(inputreader.readLine().equals("y") || inputreader.readLine().equals("Y")){
+            String hold;
+            hold = inputreader.readLine();
+            if(hold.equals("y") || hold.equals("Y")){
                 disablecheck=true;
             }
             System.out.println("running using default settings? type \"y\" if this is so. case sensitive");
-            if(inputreader.readLine().equals("y")|| inputreader.readLine().equals("Y")){
+            if(hold.equals("y") || hold.equals("Y")){
                 certloc = "Alice_Cert.crt";
                 portnum = "4321";
                 privatekey = "unencryptedprivatekeyALICE.der";

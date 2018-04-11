@@ -29,7 +29,7 @@ public class sendFiles {
         }
     }
 
-    public boolean sendPlainFile(String file_loc, int byte_Array_Size){
+    public boolean sendPlainFile(String file_loc){
         try{
 
 
@@ -41,7 +41,7 @@ public class sendFiles {
             //open the file streams for your documents to be sent. / the file to be sent. Anything really.
 
 
-            byte[] buffer = new byte[byte_Array_Size];
+            byte[] buffer = new byte[33600];
             TimeUnit.MILLISECONDS.sleep(10);
             this.PipetoClient.writeInt(0);
             //System.out.println("initiated File sending by sending int 0 over"); //debug message
@@ -333,7 +333,6 @@ public class sendFiles {
     public void send_File_With_AES(String file_loc,Key session_Key){ //A method to send things with private encryption
         try{
             IvParameterSpec iv =null;
-            int byte_Array_Size = 112;
             this.PipetoClient= new DataOutputStream(this.receipient.getOutputStream());//send data to here to talk to opponent party.}
             //System.out.println("Created pipe to client"); //debug message
             TimeUnit.SECONDS.sleep(1);
@@ -356,7 +355,7 @@ public class sendFiles {
 
             //informing of File name completed...
             File file_being_sent = new File(file_loc); //open up the file i want to send.
-
+            int byte_Array_Size = 33600;
             int number_of_blocks =(int) Math.ceil((double)file_being_sent.length()/byte_Array_Size);
             int totalbytes_to_besent = (int) Math.ceil(( (double) byte_Array_Size/16 +1 )) *16*number_of_blocks ;
             //math to calculate the total number of blocks i'll be sending  over.
@@ -384,6 +383,7 @@ public class sendFiles {
                 after_process = cipher_private.doFinal(buffer); //decrypt
 
                 this.PipetoClient.writeInt(1); //signal to them that i'm sending a part of the file.
+                this.PipetoClient.writeInt(after_process.length); //tell them buffer size
                 this.PipetoClient.writeInt(no_of_bytes_sent); //tell them the byte array length
                 this.PipetoClient.write(after_process); //write bytearray out
                 //System.out.println(after_process.length);

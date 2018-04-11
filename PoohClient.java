@@ -8,8 +8,8 @@ public class PoohClient {
         String portnum="";
         String who;
         String privatekey="";
-        String targetip="10.12.141.174";
-        //"localhost"
+        String targetip="localhost";
+        //"10.12.141.174"
         String who_is_that="";
         boolean do_or_dont=true;
         boolean disablecheck=false;
@@ -17,11 +17,14 @@ public class PoohClient {
 
             BufferedReader inputreader = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("are you running this server for someone other then alice and bob?");
-            if(inputreader.readLine().equals("y") || inputreader.readLine().equals("Y")){
+            String hold;
+            hold = inputreader.readLine();
+            if(hold.equals("y") || hold.equals("Y")){
                 disablecheck=true;
             }
             System.out.println("running using default settings? type \"y\" if this is so. case sensitive");
-            if(inputreader.readLine().equals("y")|| inputreader.readLine().equals("Y")){
+            hold = inputreader.readLine();
+            if(hold.equals("y") || hold.equals("Y")){
                 certloc = "Alice_Cert.crt";
                 portnum = "4321";
                 privatekey = "unencryptedprivatekeyALICE.der";

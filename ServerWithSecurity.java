@@ -99,7 +99,7 @@ public class ServerWithSecurity {
     public void sendplaincert(){
         if(instantender){return;} //instakill if some step was failed.
         System.out.println("Attempting to send certificate unencrypted...");
-        boolean success = this.file_Sender.sendPlainFile(this.my_cert,1024);
+        boolean success = this.file_Sender.sendPlainFile(this.my_cert);
         if(this.failtestcheck(success)){ //on failure, trigger all instant kill flags, return.
             System.out.println("ERROR in process.");
             return;
