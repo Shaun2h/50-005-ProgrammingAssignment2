@@ -30,17 +30,23 @@ class certVerifier{
             System.out.println("beginning verification that sender indeed owns cert.");
             DataInputStream input = new DataInputStream(this.given_Socket.getInputStream());
             DataOutputStream output = new DataOutputStream(this.given_Socket.getOutputStream());//am now ready to receive data.
-            TimeUnit.MILLISECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(10);
 
             output.writeInt(1);//signalled to them that i am ready to receive one.
 
-            int byte_array_len = input.readInt(); //now obtain the total length of the message that is encrypted
-            byte[] message_array = new byte[byte_array_len]; //generate a byte array.
-            //System.out.println("byte array len - "+ byte_array_len); //debug
 
+            //System.out.println("byte array len - "+ byte_array_len); //debug
+            Random ao = new Random();
+            Double k = ao.nextDouble()* ao.nextInt(40000);
+
+            output.writeDouble(k); //send nonce
+            output.writeInt(1);
+            String rep = k.toString();
             TimeUnit.MILLISECONDS.sleep(1);
             output.writeInt(1);  //signalled that I am ready to receive actual message;
             TimeUnit.MILLISECONDS.sleep(1);
+            int byte_array_len = input.readInt(); //now obtain the total length of the message that is encrypted
+            byte[] message_array = new byte[byte_array_len]; //generate a byte array.
             input.read(message_array); //obtain actual byte array.
             System.out.println("got their encrypted message.");
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
@@ -53,7 +59,6 @@ class certVerifier{
             }
             System.out.println("");
             */
-
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,their_key);
             //System.out.println(message_array.length);
@@ -62,7 +67,7 @@ class certVerifier{
             String answer = new String(byte_answer);
             //System.out.println(answer);
             System.out.println("verification completed...");
-            if (!answer.equals("This is a message")){
+            if (!answer.equals(rep)){
                 return false;
             }
             return true;
@@ -106,7 +111,6 @@ class certVerifier{
             System.out.println("beginning to send encrypted message");
             DataOutputStream output = new DataOutputStream(given_Socket.getOutputStream());
             DataInputStream input = new DataInputStream(given_Socket.getInputStream());
-            String message= "This is a message";
             File my_Private_Key_File = new File(my_Private_Key_loc);
             BufferedInputStream key_File_Input_Stream = new BufferedInputStream(new FileInputStream(my_Private_Key_File)); //obtain a buffered input stream of your private key.
             KeyFactory kf = KeyFactory.getInstance("RSA");
@@ -114,11 +118,11 @@ class certVerifier{
             key_File_Input_Stream.read(private_key_bytes); //read the entire file into this array..
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes);
             PrivateKey my_Private_key = kf.generatePrivate(keySpec);
-
-
+            input.readInt(); //get signal 1
+            Double best = input.readDouble();
             Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher_private.init(Cipher.ENCRYPT_MODE,my_Private_key); //make a cipher with your private key...
-            byte[] messageBytes = message.getBytes(); //obtain byte array of item.
+            byte[] messageBytes = best.toString().getBytes(); //obtain byte array of item after stringcast
             //if you have 1024 bits for your key, which we do, you can have
             // (1024/8 -11) characters encrypted.
             //so, to hold your stuff,
