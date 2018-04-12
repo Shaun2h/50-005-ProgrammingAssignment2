@@ -42,7 +42,7 @@ class certVerifier{
             output.writeInt(1);  //signalled that I am ready to receive actual message;
             TimeUnit.MILLISECONDS.sleep(1);
             input.read(message_array); //obtain actual byte array.
-            System.out.println("got their encrypted message.");
+            System.out.println("got their signed message.");
             InputStream a = new FileInputStream(this.given_cert_loc); //Cert to be compared with's File.
             CertificateFactory cf = CertificateFactory.getInstance("X.509");//for generating certificate item
             X509Certificate their_cert = (X509Certificate) cf.generateCertificate(a); //Unknown's Cert.
@@ -53,28 +53,34 @@ class certVerifier{
             }
             System.out.println("");
             */
-
+            /*
             Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE,their_key);
             //System.out.println(message_array.length);
 
             byte[] byte_answer = cipher.doFinal(message_array);
-            String answer = new String(byte_answer);
+            */
+            Signature publicsigverify = Signature.getInstance("SHA256withRSA");
+            publicsigverify.initVerify(their_key);
             //System.out.println(answer);
             System.out.println("verification completed...");
-            if (!answer.equals("This is a message")){
+            if (!publicsigverify.verify(message_array)){
                 return false;
             }
             return true;
+        }
+        catch(SignatureException ex){
+            System.out.println("signature exception");
+            ex.printStackTrace();
         }
         catch(InterruptedException ex){
             System.out.println("Interrupted..?");
             ex.printStackTrace();
         }
-        catch(NoSuchPaddingException ex){
+        /*catch(NoSuchPaddingException ex){
             System.out.println("No such Padding Exception");
             ex.printStackTrace();
-        }
+        }*/
         catch (InvalidKeyException ex){
             System.out.println("Invalid Key Exception");
             ex.printStackTrace();
@@ -87,14 +93,14 @@ class certVerifier{
             System.out.println("No such Algorithm Exception");
             ex.printStackTrace();
         }
-        catch(IllegalBlockSizeException ex){
+        /*catch(IllegalBlockSizeException ex){
             System.out.println("IllegalBlock Size Exception");
             ex.printStackTrace();
         }
         catch(BadPaddingException ex){
             System.out.println("Bad Padding Exception");
             ex.printStackTrace();
-        }
+        }*/
         catch(IOException ex){
             System.out.println("IOException Occurred");
             ex.printStackTrace();
@@ -114,16 +120,18 @@ class certVerifier{
             key_File_Input_Stream.read(private_key_bytes); //read the entire file into this array..
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(private_key_bytes);
             PrivateKey my_Private_key = kf.generatePrivate(keySpec);
-
-
-            Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            Signature Privatesig = Signature.getInstance("SHA256withRSA");
+            Privatesig.initSign(my_Private_key);
+            Privatesig.update(message.getBytes());
+            byte[] ans = Privatesig.sign();
+            /*Cipher cipher_private = Cipher.getInstance("RSA/ECB/PKCS1Padding");
             cipher_private.init(Cipher.ENCRYPT_MODE,my_Private_key); //make a cipher with your private key...
             byte[] messageBytes = message.getBytes(); //obtain byte array of item.
             //if you have 1024 bits for your key, which we do, you can have
             // (1024/8 -11) characters encrypted.
             //so, to hold your stuff,
 
-            byte[] ans = cipher_private.doFinal(messageBytes); // encrypt.
+            byte[] ans = cipher_private.doFinal(messageBytes); // encrypt.*/
 
             /*for(byte bb: messageBytes) {
                 System.out.print(bb); //uncomment to see what message is about to be sent)
@@ -143,8 +151,12 @@ class certVerifier{
             input.readInt();
             output.write(ans); // send actual array over.
             output.flush(); //ensure it is written over.
-
             TimeUnit.MILLISECONDS.sleep(100);
+        }
+        catch(SignatureException ex){
+            System.out.println("Signature Exception.");
+            ex.printStackTrace();
+
         }
         catch(InterruptedException ex){
             System.out.println("Interrupted...?");
@@ -162,22 +174,22 @@ class certVerifier{
             System.out.println("Invalid Key Spec Exception");
             ex.printStackTrace();
         }
-        catch(NoSuchPaddingException ex){
+        /*catch(NoSuchPaddingException ex){
             System.out.println("No Such Padding Exception");
             ex.printStackTrace();
-        }
+        }*/
         catch(InvalidKeyException ex){
             System.out.println("Invalid Key");
             ex.printStackTrace();
         }
-        catch(IllegalBlockSizeException ex){
+        /*catch(IllegalBlockSizeException ex){
             System.out.println("Invalid Block Size");
             ex.printStackTrace();
         }
         catch(BadPaddingException ex){
             System.out.println("Bad Padding Exception");
             ex.printStackTrace();
-        }
+        }*/
     }
     public boolean verify_is_person(String who,boolean disable){
         if (disable){return true;}
