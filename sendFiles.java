@@ -66,8 +66,6 @@ public class sendFiles {
                 this.PipetoClient.flush(); //FORCE all things in buffer to be written out.
 
                 total_bytes_sent+=no_of_bytes_sent; //tells me if there were less bytes sent then the total file buffer, meaning i touched the end of file.
-
-
                 //System.out.println("sent one packet over");//debug message
                 //TimeUnit.MILLISECONDS.sleep(1);
             }

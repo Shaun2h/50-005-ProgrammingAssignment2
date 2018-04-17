@@ -388,7 +388,7 @@ public class receiveFiles {
 
 
 
-                    TimeUnit.MICROSECONDS.sleep(500);
+                    TimeUnit.MILLISECONDS.sleep(100);
                     //You HAVE to sleep. because it takes time on the other computer to write stuff over. If your delay is insufficient, coupled with a slow network,
                     //your packet being sent will be cut off. i.e. you'll read "valid part-000000000000000000000000000" where it literally says 0 because that bit wasn't written/sent over yet.
 
