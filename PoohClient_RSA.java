@@ -15,7 +15,7 @@ public class PoohClient_RSA {
         boolean disablecheck=false;
         try {
             BufferedReader inputreader = new BufferedReader(new InputStreamReader(System.in));
-            System.out.println("are you running this server for someone other then alice and bob?");
+            System.out.println("are you running this client for someone other then alice and bob?");
             String hold;
             hold = inputreader.readLine();
             if(hold.equals("y") || hold.equals("Y")){

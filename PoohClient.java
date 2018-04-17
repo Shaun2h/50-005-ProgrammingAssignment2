@@ -8,7 +8,8 @@ public class PoohClient {
         String portnum="";
         String who;
         String privatekey="";
-        String targetip="localhost";
+        String targetip="10.12.141.174";
+        // "localhost";
         //"10.12.141.174"
         String who_is_that="";
         boolean do_or_dont=true;

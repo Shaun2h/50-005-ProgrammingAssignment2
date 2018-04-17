@@ -355,7 +355,7 @@ public class sendFiles {
 
             //informing of File name completed...
             File file_being_sent = new File(file_loc); //open up the file i want to send.
-            int byte_Array_Size = 33600;
+            int byte_Array_Size = 100800;
             int number_of_blocks =(int) Math.ceil((double)file_being_sent.length()/byte_Array_Size);
             int totalbytes_to_besent = (int) Math.ceil(( (double) byte_Array_Size/16 +1 )) *16*number_of_blocks ;
             //math to calculate the total number of blocks i'll be sending  over.

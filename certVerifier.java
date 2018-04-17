@@ -42,9 +42,9 @@ class certVerifier{
             output.writeDouble(k); //send nonce
             output.writeInt(1);
             String rep = k.toString();
-            TimeUnit.MILLISECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(10);
             output.writeInt(1);  //signalled that I am ready to receive actual message;
-            TimeUnit.MILLISECONDS.sleep(1);
+            TimeUnit.MILLISECONDS.sleep(10);
             int byte_array_len = input.readInt(); //now obtain the total length of the message that is encrypted
             byte[] message_array = new byte[byte_array_len]; //generate a byte array.
             input.read(message_array); //obtain actual byte array.
