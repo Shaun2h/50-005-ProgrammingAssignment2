@@ -22,6 +22,7 @@ public class PoohClient_RSA {
                 disablecheck=true;
             }
             System.out.println("running using default settings? type \"y\" if this is so. case sensitive");
+            hold = inputreader.readLine();
             if(hold.equals("y") || hold.equals("Y")){
                 certloc = "Alice_Cert.crt";
                 portnum = "4321";

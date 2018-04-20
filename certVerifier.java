@@ -148,7 +148,7 @@ class certVerifier{
             output.write(ans); // send actual array over.
             output.flush(); //ensure it is written over.
 
-            TimeUnit.MILLISECONDS.sleep(100);
+            TimeUnit.MILLISECONDS.sleep(150);
         }
         catch(InterruptedException ex){
             System.out.println("Interrupted...?");
